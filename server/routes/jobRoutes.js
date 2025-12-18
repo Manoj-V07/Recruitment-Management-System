@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { createJob, getMyJobs, getAllJobs, getOpenJobs, closeJob } = require('../controllers/jobController');
-const { authMiddleware, adminOnly, hrApprovedOnly } = require('../middlewares/authMiddleware');
+const { createJob, getMyJobs, getAllJobs, getOpenJobs, closeJob } = require('../contollers/jobController');
+const { authMiddleware, adminOnly, hrApprovedOnly } = require('../middleware/authMiddleware');
 
 
 router.post( '/', authMiddleware, hrApprovedOnly, createJob);
