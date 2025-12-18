@@ -35,4 +35,17 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-module.exports = { authMiddleware, adminOnly };
+const hrApprovedOnly = (req, res, next) => {
+  if (req.user.role !== 'hr') {
+    return res.status(403).json({message: 'HR access only'});
+  }
+
+  if (!req.user.isApproved) {
+    return res.status(403).json({message: 'HR not approved by admin'});
+  }
+
+  next();
+};
+
+
+module.exports = { authMiddleware, adminOnly, hrApprovedOnly};
