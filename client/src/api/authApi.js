@@ -1,19 +1,21 @@
-const BASE_URL = 'http://localhost:5000/auth';
+import api from './axios';
 
 export const registerUser = async (data) => {
-  const res = await fetch(`${BASE_URL}/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  return res.json();
+  const res = await api.post('/auth/register', data);
+  return res.data;
 };
 
 export const loginUser = async (data) => {
-  const res = await fetch(`${BASE_URL}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  return res.json();
+  const res = await api.post('/auth/login', data);
+  return res.data;
+};
+
+export const getHRs = async () => {
+  const res = await api.get('/auth/hrs');
+  return res.data;
+};
+
+export const approveHR = async (hrId) => {
+  const res = await api.patch(`/auth/approve-hr/${hrId}`);
+  return res.data;
 };
