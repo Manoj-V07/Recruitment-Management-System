@@ -27,6 +27,12 @@ export default function Jobs() {
     job.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen"><p className="text-gray-500">Loading jobs...</p></div>;
   }
@@ -34,9 +40,17 @@ export default function Jobs() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800">Open Positions</h1>
-          <p className="text-gray-600 mt-2">Find your next opportunity</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800">Open Positions</h1>
+            <p className="text-gray-600 mt-2">Find your next opportunity</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+          >
+            Logout
+          </button>
         </div>
 
         {error && (

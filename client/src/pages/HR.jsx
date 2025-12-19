@@ -9,13 +9,18 @@ export default function HR() {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState('');
+  const [isApproved, setIsApproved] = useState(false);
 
   useEffect(() => {
+    // Check HR approval status from local storage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    setIsApproved(user.isApproved || false);
+
     const fetchJobs = async () => {
       try {
         setLoading(true);
         const data = await getMyJobs();
-        setJobs(data);
+        setJobs(data.jobs || []);
       } catch (err) {
         setError('Failed to load jobs');
       } finally {
@@ -26,6 +31,11 @@ export default function HR() {
   }, []);
 
   const submit = async () => {
+    if (!isApproved) {
+      alert('Your account is pending approval. Please wait for admin approval to create jobs.');
+      return;
+    }
+
     if (!title.trim()) {
       alert('Please enter a job title');
       return;
@@ -36,7 +46,7 @@ export default function HR() {
       await createJob({
         jobTitle: title,
         jobDescription: description,
-        requiredSkills: skills.split(',').map(s => s.trim()),
+        requiredSkills: skills.split(',').map(s => s.trim()).filter(s => s),
         experience: 0,
         location: 'Remote',
         jobType: 'Full-Time',
@@ -47,21 +57,62 @@ export default function HR() {
       setSkills('JS');
       setShowForm(false);
       const data = await getMyJobs();
-      setJobs(data);
+      setJobs(data.jobs || []);
     } catch (err) {
-      setError('Failed to create job');
+      setError(err.response?.data?.message || 'Failed to create job');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800">HR Dashboard</h1>
-          <p className="text-gray-600 mt-2">Create and manage job postings</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800">HR Dashboard</h1>
+            <p className="text-gray-600 mt-2">Create and manage job postings</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+          >
+            Logout
+          </button>
         </div>
+
+        {/* Approval Status Banner */}
+        {!isApproved && (
+          <div className="mb-6 p-6 bg-yellow-50 border-2 border-yellow-400 rounded-lg flex items-start">
+            <div className="flex-shrink-0 mr-4">
+              <svg className="h-8 w-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-yellow-800 mb-2">⏳ Account Pending Approval</h3>
+              <p className="text-yellow-700">
+                Your HR account is awaiting admin approval. You will be able to create and manage job postings once approved.
+                Please contact your administrator for more information.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isApproved && (
+          <div className="mb-6 p-4 bg-green-50 border-2 border-green-400 rounded-lg flex items-center">
+            <svg className="h-6 w-6 text-green-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-green-700 font-semibold">✓ Your account is approved. You can now create job postings.</p>
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
@@ -74,8 +125,18 @@ export default function HR() {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-800">Create New Job</h2>
             <button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+              onClick={() => {
+                if (!isApproved) {
+                  alert('Your account is pending approval. Please wait for admin approval to create jobs.');
+                  return;
+                }
+                setShowForm(!showForm);
+              }}
+              className={`${
+                isApproved 
+                  ? 'bg-indigo-600 hover:bg-indigo-700' 
+                  : 'bg-gray-400 cursor-not-allowed'
+              } text-white font-semibold py-2 px-6 rounded-lg transition-colors`}
             >
               {showForm ? '✕ Close' : '+ New Job'}
             </button>

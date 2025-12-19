@@ -29,9 +29,15 @@ const Login = () => {
         if (res.user.role === 'admin') {
           window.location.href = '/admin';
         } else if (res.user.role === 'hr') {
+          if (!res.user.isApproved) {
+            setError('Your HR account is pending admin approval. Please wait for approval.');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            return;
+          }
           window.location.href = '/hr';
         } else {
-          window.location.href = '/candidate';
+          window.location.href = '/jobs';
         }
       } else {
         setError(res.message || 'Login failed');

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getHRs, approveHR, disapproveHR } from '../api/authApi';
+import { getHRs, approveHR } from '../api/authApi';
 
 export default function Admin() {
   const [hrs, setHrs] = useState([]);
@@ -31,14 +31,10 @@ export default function Admin() {
     }
   };
 
-  const handleDisapprove = async (hrId) => {
-    try {
-      await disapproveHR(hrId);
-      setHrs(hrs.map(hr => hr._id === hrId ? { ...hr, isApproved: false } : hr));
-      alert('HR disapproved successfully');
-    } catch (err) {
-      alert('Failed to disapprove HR');
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
   };
 
   if (loading) {
@@ -48,9 +44,17 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800">HR Management</h1>
-          <p className="text-gray-600 mt-2">Approve or disapprove HR applications</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800">HR Management</h1>
+            <p className="text-gray-600 mt-2">Approve or disapprove HR applications</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+          >
+            Logout
+          </button>
         </div>
 
         {error && (
@@ -82,19 +86,13 @@ export default function Admin() {
                   </span>
                 </div>
 
-                <div className="flex gap-3">
+                <div>
                   <button 
                     onClick={() => handleApprove(hr._id)}
                     disabled={hr.isApproved}
-                    className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg transition-colors"
+                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg transition-colors"
                   >
                     Approve
-                  </button>
-                  <button 
-                    onClick={() => handleDisapprove(hr._id)}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg transition-colors"
-                  >
-                    Disapprove
                   </button>
                 </div>
               </div>
