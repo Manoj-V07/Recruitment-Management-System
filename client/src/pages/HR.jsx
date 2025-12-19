@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createJob, getMyJobs } from '../api/jobApi';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 export default function HR() {
   const [jobs, setJobs] = useState([]);
@@ -12,7 +14,6 @@ export default function HR() {
   const [isApproved, setIsApproved] = useState(false);
 
   useEffect(() => {
-    // Check HR approval status from local storage
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     setIsApproved(user.isApproved || false);
 
@@ -43,18 +44,11 @@ export default function HR() {
 
     try {
       setLoading(true);
-      await createJob({
-        jobTitle: title,
-        jobDescription: description,
-        requiredSkills: skills.split(',').map(s => s.trim()).filter(s => s),
-        experience: 0,
-        location: 'Remote',
-        jobType: 'Full-Time',
-      });
+      await createJob({ jobTitle: title, jobDescription: description, requiredSkills: skills.split(',').map(s => s.trim()).filter(s => s), experience: 0, location: 'Remote', jobType: 'Full-Time'});
       alert('Job Created Successfully!');
       setTitle('');
-      setDescription('Desc');
-      setSkills('JS');
+      setDescription('');
+      setSkills('');
       setShowForm(false);
       const data = await getMyJobs();
       setJobs(data.jobs || []);
@@ -65,27 +59,15 @@ export default function HR() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Header />
+      <div className="flex-grow p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8">
             <h1 className="text-4xl font-bold text-gray-800">HR Dashboard</h1>
             <p className="text-gray-600 mt-2">Create and manage job postings</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-          >
-            Logout
-          </button>
-        </div>
 
         {/* Approval Status Banner */}
         {!isApproved && (
@@ -216,6 +198,8 @@ export default function HR() {
           )}
         </div>
       </div>
+      <Footer />
+    </div>
     </div>
   );
 }

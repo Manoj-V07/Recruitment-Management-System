@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getOpenJobs } from '../api/jobApi';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
@@ -27,31 +29,19 @@ export default function Jobs() {
     job.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
-  };
-
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen"><p className="text-gray-500">Loading jobs...</p></div>;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Header />
+      <div className="flex-grow p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8">
             <h1 className="text-4xl font-bold text-gray-800">Open Positions</h1>
             <p className="text-gray-600 mt-2">Find your next opportunity</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-          >
-            Logout
-          </button>
-        </div>
 
         {error && (
           <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
@@ -117,6 +107,8 @@ export default function Jobs() {
 
         <p className="text-center text-gray-600 mt-8">Showing {filteredJobs.length} job(s)</p>
       </div>
+      </div>
+      <Footer />
     </div>
   );
 }

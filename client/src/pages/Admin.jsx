@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { getHRs, approveHR } from '../api/authApi';
+import { getHRs, approveHR, disapproveHR } from '../api/authApi';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 export default function Admin() {
   const [hrs, setHrs] = useState([]);
@@ -31,10 +33,14 @@ export default function Admin() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
+  const handleDisapprove = async (hrId) => {
+    try {
+      await disapproveHR(hrId);
+      setHrs(hrs.map(hr => hr._id === hrId ? { ...hr, isApproved: false } : hr));
+      alert('HR disapproved successfully');
+    } catch (err) {
+      alert('Failed to disapprove HR');
+    }
   };
 
   if (loading) {
@@ -42,20 +48,14 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Header />
+      <div className="flex-grow p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8">
             <h1 className="text-4xl font-bold text-gray-800">HR Management</h1>
             <p className="text-gray-600 mt-2">Approve or disapprove HR applications</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-          >
-            Logout
-          </button>
-        </div>
 
         {error && (
           <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
@@ -86,20 +86,29 @@ export default function Admin() {
                   </span>
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <button 
                     onClick={() => handleApprove(hr._id)}
                     disabled={hr.isApproved}
                     className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg transition-colors"
                   >
-                    Approve
+                    {hr.isApproved ? '✓ Approved' : 'Approve'}
+                  </button>
+                  <button 
+                    onClick={() => handleDisapprove(hr._id)}
+                    disabled={!hr.isApproved}
+                    className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg transition-colors"
+                  >
+                    {!hr.isApproved ? '✕ Disapproved' : 'Disapprove'}
                   </button>
                 </div>
               </div>
             ))}
           </div>
         )}
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }

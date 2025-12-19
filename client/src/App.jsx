@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Admin from './pages/Admin';
@@ -21,6 +22,17 @@ const getRole = () => {
 };
 
 const Protected = ({ children, allowed }) => {
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    // Give a moment for localStorage to be read
+    setIsChecking(false);
+  }, []);
+
+  if (isChecking) {
+    return <div className="flex items-center justify-center min-h-screen"><p className="text-gray-500">Loading...</p></div>;
+  }
+
   if (!isAuth()) return <Navigate to="/login" />;
   const userRole = getRole();
   if (allowed && (!userRole || !allowed.includes(userRole))) return <Navigate to="/login" />;
