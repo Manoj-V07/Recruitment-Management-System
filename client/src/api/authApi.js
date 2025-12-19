@@ -19,3 +19,8 @@ export const approveHR = async (hrId) => {
   const res = await api.patch(`/auth/approve-hr/${hrId}`);
   return res.data;
 };
+
+export const disapproveHR = async (hrId) => {
+  const res = await api.patch(`/auth/disapprove-hr/${hrId}`);
+  return res.data;
+};

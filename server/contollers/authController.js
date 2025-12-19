@@ -131,4 +131,32 @@ const listHRs = async (req, res) => {
   }
 };
 
-module.exports = { register, login, approveHR, listHRs};
+const disapproveHR = async (req, res) => {
+  try {
+    const { hrId } = req.params;
+
+    const hr = await User.findById(hrId);
+    if (!hr || hr.role !== 'hr') {
+      return res.status(404).json({ message: 'HR not found' });
+    }
+
+    if (!hr.isApproved) {
+      return res.status(400).json({
+        message: 'HR is already not approved',
+      });
+    }
+
+    hr.isApproved = false;
+    await hr.save();
+
+    return res.status(200).json({
+      message: 'HR disapproved successfully',
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+module.exports = { register, login, approveHR, listHRs , disapproveHR };
