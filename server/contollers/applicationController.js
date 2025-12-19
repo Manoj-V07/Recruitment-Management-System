@@ -1,0 +1,108 @@
+const Application = require('../models/Application');
+const Job = require('../models/Job');
+
+
+const applyForJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    if (req.user.role !== 'candidate') {
+      return res.status(403).json({ message: 'Only candidates can apply for jobs' });
+    }
+
+    const job = await Job.findById(jobId);
+    if (!job || !job.isOpen) {
+      return res.status(404).json({ message: 'Job not found or closed' });
+    }
+
+    const application = await Application.create({ jobId, candidateId: req.user._id });
+
+    return res.status(201).json({ message: 'Job applied successfully', applicationId: application._id });
+
+  } catch (error) {
+    console.error('Apply job error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const getMyApplications = async (req, res) => {
+  try {
+    if (req.user.role !== 'candidate') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const applications = await Application.find({ candidateId: req.user._id }).populate('jobId', 'jobTitle location jobType').sort({ createdAt: -1 });
+    return res.status(200).json(applications);
+
+  } catch (error) {
+    console.error('Get my applications error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+const getApplicationsForJob = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    if (req.user.role !== 'hr') {
+      return res.status(403).json({ message: 'HR access only' });
+    }
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found' });
+    }
+
+    if (job.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const applications = await Application.find({ jobId }).populate('candidateId', 'username email').sort({ createdAt: -1 });
+
+    return res.status(200).json(applications);
+
+  } catch (error) {
+    console.error('Get applications for job error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const updateApplicationStatus = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const { status } = req.body;
+
+    if (req.user.role !== 'hr') {
+      return res.status(403).json({ message: 'HR access only' });
+    }
+
+    if (!['applied', 'shortlisted', 'rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const application = await Application.findById(applicationId);
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    const job = await Job.findById(application.jobId);
+
+    if (job.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    application.status = status;
+    await application.save();
+
+    return res.status(200).json({
+      message: 'Application status updated successfully',
+    });
+
+  } catch (error) {
+    console.error('Update application status error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+module.exports = { applyForJob, getMyApplications, getApplicationsForJob, updateApplicationStatus };
