@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getOpenJobs } from '../api/jobApi';
+import { applyForJob, getMyApplications } from '../api/applicationApi';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -8,21 +9,61 @@ export default function Jobs() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [myApplications, setMyApplications] = useState([]);
+  const [applyingJobId, setApplyingJobId] = useState(null);
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isCandidate = user.role === 'candidate';
 
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getOpenJobs();
-        setJobs(data);
+        const jobsData = await getOpenJobs();
+        setJobs(jobsData);
+        
+        if (isCandidate) {
+          const applicationsData = await getMyApplications();
+          setMyApplications(applicationsData);
+        }
       } catch (err) {
         setError('Failed to load jobs');
       } finally {
         setLoading(false);
       }
     };
-    fetchJobs();
-  }, []);
+    fetchData();
+  }, [isCandidate]);
+
+  const handleApply = async (jobId) => {
+    if (!isCandidate) {
+      alert('Only candidates can apply for jobs. Please login as a candidate.');
+      return;
+    }
+
+    try {
+      setApplyingJobId(jobId);
+      await applyForJob(jobId);
+      alert('Application submitted successfully!');
+      
+      // Refresh applications
+      const applicationsData = await getMyApplications();
+      setMyApplications(applicationsData);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to apply for job');
+    } finally {
+      setApplyingJobId(null);
+    }
+  };
+
+  const hasApplied = (jobId) => {
+    return myApplications.some(app => app.jobId?._id === jobId);
+  };
+
+  const getApplicationStatus = (jobId) => {
+    const application = myApplications.find(app => app.jobId?._id === jobId);
+    return application?.status;
+  };
 
   const filteredJobs = jobs.filter(job =>
     job.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -97,8 +138,33 @@ export default function Jobs() {
                   </div>
                 </div>
 
-                <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition-colors">
-                  View Details
+                <button 
+                  onClick={() => handleApply(job._id)}
+                  disabled={!isCandidate || hasApplied(job._id) || applyingJobId === job._id}
+                  className={`w-full font-semibold py-2 rounded-lg transition-colors ${
+                    hasApplied(job._id)
+                      ? getApplicationStatus(job._id) === 'shortlisted'
+                        ? 'bg-green-600 text-white cursor-not-allowed'
+                        : getApplicationStatus(job._id) === 'rejected'
+                        ? 'bg-red-600 text-white cursor-not-allowed'
+                        : 'bg-blue-600 text-white cursor-not-allowed'
+                      : isCandidate
+                      ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                      : 'bg-gray-400 text-white cursor-not-allowed'
+                  }`}
+                >
+                  {applyingJobId === job._id
+                    ? 'Applying...'
+                    : hasApplied(job._id)
+                    ? getApplicationStatus(job._id) === 'shortlisted'
+                      ? '✓ Shortlisted'
+                      : getApplicationStatus(job._id) === 'rejected'
+                      ? '✕ Rejected'
+                      : '✓ Applied'
+                    : isCandidate
+                    ? 'Apply Now'
+                    : 'Login to Apply'
+                  }
                 </button>
               </div>
             ))}

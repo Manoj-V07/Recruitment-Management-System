@@ -5,6 +5,8 @@ import Register from './pages/Register';
 import Admin from './pages/Admin';
 import HR from './pages/HR';
 import Jobs from './pages/Jobs';
+import MyApplications from './pages/MyApplications';
+import JobApplications from './pages/JobApplications';
 
 const isAuth = () => {
   const token = localStorage.getItem('token');
@@ -55,6 +57,18 @@ function App() {
         <Route path="/hr" element={
           <Protected allowed={['hr']}>
             <HR />
+          </Protected>
+        } />
+
+        <Route path="/job-applications/:jobId" element={
+          <Protected allowed={['hr']}>
+            <JobApplications />
+          </Protected>
+        } />
+
+        <Route path="/my-applications" element={
+          <Protected allowed={['candidate']}>
+            <MyApplications />
           </Protected>
         } />
 

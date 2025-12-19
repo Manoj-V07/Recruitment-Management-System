@@ -48,6 +48,14 @@ export default function Header() {
                 Dashboard
               </button>
             )}
+            {userRole === 'candidate' && (
+              <button
+                onClick={() => handleNavigation('/my-applications')}
+                className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+              >
+                My Applications
+              </button>
+            )}
             <button
               onClick={() => handleNavigation('/jobs')}
               className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"

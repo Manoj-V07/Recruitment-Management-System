@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { createJob, getMyJobs } from '../api/jobApi';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 export default function HR() {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('Desc');
@@ -191,7 +193,13 @@ export default function HR() {
                       📍 {job.location}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500">Skills: {job.requiredSkills?.join(', ') || 'N/A'}</p>
+                  <p className="text-sm text-gray-500 mb-4">Skills: {job.requiredSkills?.join(', ') || 'N/A'}</p>
+                  <button
+                    onClick={() => navigate(`/job-applications/${job._id}`)}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg transition-colors"
+                  >
+                    View Applications
+                  </button>
                 </div>
               ))}
             </div>
