@@ -32,7 +32,7 @@ const Protected = ({ children, allowed }) => {
   }, []);
 
   if (isChecking) {
-    return <div className="flex items-center justify-center min-h-screen"><p className="text-gray-500">Loading...</p></div>;
+    return <div className="flex items-center justify-center min-h-screen bg-neutral-900"><p className="text-neutral-400">Loading...</p></div>;
   }
 
   if (!isAuth()) return <Navigate to="/login" />;
@@ -60,7 +60,7 @@ function App() {
           </Protected>
         } />
 
-        <Route path="/job-applications/:jobId" element={
+        <Route path="/job-applications" element={
           <Protected allowed={['hr']}>
             <JobApplications />
           </Protected>

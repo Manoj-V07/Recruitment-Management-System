@@ -3,13 +3,43 @@ const Job = require('../models/Job');
 
 const createJob = async (req, res) => {
   try {
-    const { jobTitle, jobDescription, requiredSkills, experience, location, jobType } = req.body;
+    const { jobTitle, jobDescription, requiredSkills, experience, location, jobType, vacancies } = req.body;
 
-    if (!jobTitle || !jobDescription || !Array.isArray(requiredSkills) || requiredSkills.length === 0 || experience === undefined || experience === null || !location || !jobType) {
+    // Validate all required fields
+    if (!jobTitle || !jobDescription || !requiredSkills || experience === undefined || experience === null || !location || !jobType || !vacancies) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    const job = await Job.create({ jobTitle, jobDescription, requiredSkills, experience, location, jobType, createdBy: req.user._id});
+    // Validate vacancies
+    if (vacancies < 1) {
+      return res.status(400).json({ message: 'Vacancies must be at least 1' });
+    }
+
+    // Convert requiredSkills from comma-separated string to array
+    let skillsArray;
+    if (typeof requiredSkills === 'string') {
+      skillsArray = requiredSkills.split(',').map(s => s.trim()).filter(s => s);
+    } else if (Array.isArray(requiredSkills)) {
+      skillsArray = requiredSkills;
+    } else {
+      return res.status(400).json({ message: 'Invalid requiredSkills format' });
+    }
+
+    if (skillsArray.length === 0) {
+      return res.status(400).json({ message: 'At least one skill is required' });
+    }
+
+    const job = await Job.create({ 
+      jobTitle, 
+      jobDescription, 
+      requiredSkills: skillsArray, 
+      experience, 
+      location, 
+      jobType, 
+      vacancies,
+      createdBy: req.user._id
+    });
+    
     return res.status(201).json({ message: 'Job created successfully', jobId: job._id });
 
   } catch (error) {

@@ -1,10 +1,45 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const { authMiddleware } = require('../middleware/authMiddleware');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+
+// Middleware that supports both authorization header and query parameter
+const flexAuthMiddleware = async (req, res, next) => {
+  try {
+    let token;
+    
+    // Try to get token from authorization header
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
+    
+    // If not in header, try query parameter
+    if (!token && req.query.token) {
+      token = req.query.token;
+    }
+
+    if (!token) {
+      return res.status(401).json({ message: 'Authorization token missing' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+    
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+};
 
 // View resume inline (for display in browser)
-router.get('/view/:applicationId', authMiddleware, async (req, res) => {
+router.get('/view/:applicationId', flexAuthMiddleware, async (req, res) => {
   try {
     const Application = require('../models/Application');
     const application = await Application.findById(req.params.applicationId);
@@ -46,7 +81,7 @@ router.get('/view/:applicationId', authMiddleware, async (req, res) => {
 });
 
 // Download resume with proper headers
-router.get('/download/:applicationId', authMiddleware, async (req, res) => {
+router.get('/download/:applicationId', flexAuthMiddleware, async (req, res) => {
   try {
     const Application = require('../models/Application');
     const application = await Application.findById(req.params.applicationId);

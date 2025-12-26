@@ -18,13 +18,13 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white shadow-md">
+    <header className="bg-neutral-900 border-b border-neutral-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo and Title */}
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-indigo-600">
+              <h1 className="text-2xl font-bold text-blue-400">
                 Recruitment System
               </h1>
             </div>
@@ -35,7 +35,7 @@ export default function Header() {
             {userRole === 'admin' && (
               <button
                 onClick={() => handleNavigation('/admin')}
-                className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+                className="text-neutral-300 hover:text-blue-400 font-medium transition-colors"
               >
                 HR Management
               </button>
@@ -43,7 +43,7 @@ export default function Header() {
             {userRole === 'hr' && (
               <button
                 onClick={() => handleNavigation('/hr')}
-                className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+                className="text-neutral-300 hover:text-blue-400 font-medium transition-colors"
               >
                 Dashboard
               </button>
@@ -51,14 +51,14 @@ export default function Header() {
             {userRole === 'candidate' && (
               <button
                 onClick={() => handleNavigation('/my-applications')}
-                className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+                className="text-neutral-300 hover:text-blue-400 font-medium transition-colors"
               >
                 My Applications
               </button>
             )}
             <button
               onClick={() => handleNavigation('/jobs')}
-              className="text-gray-700 hover:text-indigo-600 font-medium transition-colors"
+              className="text-neutral-300 hover:text-blue-400 font-medium transition-colors"
             >
               Jobs
             </button>
@@ -67,8 +67,8 @@ export default function Header() {
           {/* User Info and Logout */}
           <div className="flex items-center space-x-4">
             <div className="text-right">
-              <p className="text-sm font-semibold text-gray-700">{userName}</p>
-              <p className="text-xs text-gray-500 capitalize">{userRole}</p>
+              <p className="text-sm font-semibold text-white">{userName}</p>
+              <p className="text-xs text-neutral-400 capitalize">{userRole}</p>
             </div>
             <button
               onClick={handleLogout}

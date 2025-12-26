@@ -43,6 +43,11 @@ const jobSchema = new mongoose.Schema(
             ref : 'users',
             required : true,
         },
+        vacancies: {
+            type: Number,
+            required: true,
+            min: 1
+        },
         isOpen : {
             type : Boolean,
             default : true,

@@ -15,7 +15,19 @@ const applyForJob = async (req, res) => {
       return res.status(404).json({ message: 'Job not found or closed' });
     }
 
-    const application = await Application.create({ jobId, candidateId: req.user._id });
+    // Check if resume was uploaded
+    if (!req.file) {
+      return res.status(400).json({ message: 'Resume is required' });
+    }
+
+    const applicationData = {
+      jobId,
+      candidateId: req.user._id,
+      resumeUrl: req.file.path,
+      resumeFilename: req.file.originalname
+    };
+
+    const application = await Application.create(applicationData);
 
     return res.status(201).json({ message: 'Job applied successfully', applicationId: application._id });
 
@@ -58,12 +70,39 @@ const getApplicationsForJob = async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const applications = await Application.find({ jobId }).populate('candidateId', 'username email').sort({ createdAt: -1 });
+    const applications = await Application.find({ jobId })
+      .populate('candidateId', 'username email')
+      .populate('jobId', 'jobTitle location jobType vacancies isOpen')
+      .sort({ createdAt: -1 });
 
     return res.status(200).json(applications);
 
   } catch (error) {
     console.error('Get applications for job error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const getAllApplicationsForHR = async (req, res) => {
+  try {
+    if (req.user.role !== 'hr') {
+      return res.status(403).json({ message: 'HR access only' });
+    }
+
+    // Get all jobs created by this HR
+    const jobs = await Job.find({ createdBy: req.user._id });
+    const jobIds = jobs.map(job => job._id);
+
+    // Get all applications for those jobs
+    const applications = await Application.find({ jobId: { $in: jobIds } })
+      .populate('candidateId', 'username email')
+      .populate('jobId', 'jobTitle location jobType vacancies isOpen')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json(applications);
+
+  } catch (error) {
+    console.error('Get all applications error:', error);
     return res.status(500).json({ message: 'Server error' });
   }
 };
@@ -95,6 +134,19 @@ const updateApplicationStatus = async (req, res) => {
     application.status = status;
     await application.save();
 
+    // Auto-close job when shortlisted count reaches vacancies
+    if (status === 'shortlisted') {
+      const shortlistedCount = await Application.countDocuments({
+        jobId: job._id,
+        status: 'shortlisted'
+      });
+
+      if (shortlistedCount >= job.vacancies) {
+        job.isOpen = false;
+        await job.save();
+      }
+    }
+
     return res.status(200).json({
       message: 'Application status updated successfully',
     });
@@ -105,4 +157,4 @@ const updateApplicationStatus = async (req, res) => {
   }
 };
 
-module.exports = { applyForJob, getMyApplications, getApplicationsForJob, updateApplicationStatus };
+module.exports = { applyForJob, getMyApplications, getApplicationsForJob, getAllApplicationsForHR, updateApplicationStatus };
