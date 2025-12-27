@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import JobDetailsModal from '../components/JobDetailsModal';
 import { motion } from 'framer-motion';
+import { MapPin, Briefcase, Clock } from 'lucide-react';
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
@@ -14,8 +15,7 @@ export default function Jobs() {
   const [myApplications, setMyApplications] = useState([]);
   const [applyingJobId, setApplyingJobId] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
-  
-  // Filter states
+
   const [selectedJobType, setSelectedJobType] = useState('all');
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [selectedExperience, setSelectedExperience] = useState('all');
@@ -29,12 +29,12 @@ export default function Jobs() {
         setLoading(true);
         const jobsData = await getOpenJobs();
         setJobs(jobsData);
-        
+
         if (isCandidate) {
-          const applicationsData = await getMyApplications();
-          setMyApplications(applicationsData);
+          const apps = await getMyApplications();
+          setMyApplications(apps);
         }
-      } catch (err) {
+      } catch {
         setError('Failed to load jobs');
       } finally {
         setLoading(false);
@@ -44,288 +44,201 @@ export default function Jobs() {
   }, [isCandidate]);
 
   const handleApply = async (jobId, resumeFile) => {
-    if (!isCandidate) {
-      alert('Only candidates can apply for jobs. Please login as a candidate.');
-      return;
-    }
+    if (!isCandidate) return alert('Only candidates can apply');
 
     try {
       setApplyingJobId(jobId);
-      
-      // Create FormData for file upload
       const formData = new FormData();
       formData.append('resume', resumeFile);
-      
       await applyForJob(jobId, formData);
-      alert('Application submitted successfully!');
-      
-      // Refresh applications
-      const applicationsData = await getMyApplications();
-      setMyApplications(applicationsData);
-      
-      // Close modal
+      setMyApplications(await getMyApplications());
       setSelectedJob(null);
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to apply for job');
+      alert(err.response?.data?.message || 'Failed to apply');
     } finally {
       setApplyingJobId(null);
     }
   };
 
-  const hasApplied = (jobId) => {
-    return myApplications.some(app => app.jobId?._id === jobId);
-  };
-
-  const getApplicationStatus = (jobId) => {
-    const application = myApplications.find(app => app.jobId?._id === jobId);
-    return application?.status;
-  };
-
-  // Get unique values for filters
-  const uniqueJobTypes = ['all', ...new Set(jobs.map(job => job.jobType).filter(Boolean))];
-  const uniqueLocations = ['all', ...new Set(jobs.map(job => job.location).filter(Boolean))];
-  const uniqueExperiences = ['all', '0-2', '2-5', '5+'];
+  const hasApplied = jobId =>
+    myApplications.some(app => app.jobId?._id === jobId);
 
   const filteredJobs = jobs.filter(job => {
-    // Search filter
-    const matchesSearch = job.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (job.requiredSkills && job.requiredSkills.some(skill => 
-        skill.toLowerCase().includes(searchTerm.toLowerCase())
-      ));
-    
-    // Job type filter
-    const matchesJobType = selectedJobType === 'all' || job.jobType === selectedJobType;
-    
-    // Location filter
-    const matchesLocation = selectedLocation === 'all' || job.location === selectedLocation;
-    
-    // Experience filter
-    let matchesExperience = true;
+    const q = searchTerm.toLowerCase();
+    const matchesSearch =
+      job.jobTitle.toLowerCase().includes(q) ||
+      job.location.toLowerCase().includes(q) ||
+      job.requiredSkills?.some(s => s.toLowerCase().includes(q));
+
+    const matchesType =
+      selectedJobType === 'all' || job.jobType === selectedJobType;
+
+    const matchesLocation =
+      selectedLocation === 'all' || job.location === selectedLocation;
+
+    let matchesExp = true;
     if (selectedExperience !== 'all') {
-      const jobExp = job.experience || 0;
-      if (selectedExperience === '0-2') {
-        matchesExperience = jobExp <= 2;
-      } else if (selectedExperience === '2-5') {
-        matchesExperience = jobExp > 2 && jobExp <= 5;
-      } else if (selectedExperience === '5+') {
-        matchesExperience = jobExp > 5;
-      }
+      const exp = job.experience || 0;
+      if (selectedExperience === '0-2') matchesExp = exp <= 2;
+      if (selectedExperience === '2-5') matchesExp = exp > 2 && exp <= 5;
+      if (selectedExperience === '5+') matchesExp = exp > 5;
     }
-    
-    return matchesSearch && matchesJobType && matchesLocation && matchesExperience;
+
+    return matchesSearch && matchesType && matchesLocation && matchesExp;
   });
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen bg-neutral-900"><p className="text-neutral-400">Loading jobs...</p></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-950">
+        <p className="text-neutral-400 text-lg animate-pulse">
+          Curating opportunities…
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-900">
+    <div className="min-h-screen bg-neutral-950 text-white relative overflow-hidden">
+      {/* Ambient glow */}
+      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-blue-500/20 blur-[160px]" />
+      <div className="absolute bottom-0 -right-40 w-[500px] h-[500px] bg-purple-500/20 blur-[160px]" />
+
       <Header />
-      <div className="flex-grow p-8">
-        <div className="max-w-6xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
-            className="mb-8"
-          >
-            <h1 className="text-4xl font-bold text-white">Open Positions</h1>
-            <p className="text-neutral-400 mt-2">Find your next opportunity</p>
-          </motion.div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-900/50 border border-red-600 text-red-200 rounded-lg">
-            {error}
+      <main className="relative z-10 max-w-7xl mx-auto px-5 py-16">
+        {/* HERO */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-16"
+        >
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
+            Explore{' '}
+            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Real Opportunities
+            </span>
+          </h1>
+          <p className="text-neutral-400 mt-4 max-w-2xl text-lg">
+            High-quality roles from verified companies. Apply confidently.
+          </p>
+
+          <div className="mt-8 max-w-2xl">
+            <input
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Search roles, skills or location"
+              className="w-full px-6 py-4 rounded-2xl bg-neutral-900/70 backdrop-blur border border-neutral-700 focus:ring-2 focus:ring-blue-500/40 transition text-lg"
+            />
           </div>
-        )}
+        </motion.div>
 
-        {/* Search Bar */}
-        <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Search by job title, location, or skills..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full px-6 py-3 bg-neutral-800 border-2 border-neutral-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-lg"
-          />
-        </div>
-
-        {/* Filter Section */}
-        <div className="mb-8 bg-neutral-800 border border-neutral-700 rounded-lg p-6">
-          <h3 className="text-xl font-bold text-white mb-4">Filters</h3>
+        {/* FILTER BAR */}
+        <div className="mb-14 rounded-3xl bg-neutral-900/70 backdrop-blur border border-neutral-800 p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Job Type Filter */}
-            <div>
-              <label className="block text-neutral-300 font-semibold mb-2">Job Type</label>
-              <select
-                value={selectedJobType}
-                onChange={e => setSelectedJobType(e.target.value)}
-                className="w-full px-4 py-2 bg-neutral-900 border-2 border-neutral-700 text-white rounded-lg focus:outline-none focus:border-blue-500 capitalize"
-              >
-                {uniqueJobTypes.map(type => (
-                  <option key={type} value={type} className="capitalize">
-                    {type === 'all' ? 'All Types' : type}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Location Filter */}
-            <div>
-              <label className="block text-neutral-300 font-semibold mb-2">Location</label>
-              <select
-                value={selectedLocation}
-                onChange={e => setSelectedLocation(e.target.value)}
-                className="w-full px-4 py-2 bg-neutral-900 border-2 border-neutral-700 text-white rounded-lg focus:outline-none focus:border-blue-500"
-              >
-                {uniqueLocations.map(location => (
-                  <option key={location} value={location}>
-                    {location === 'all' ? 'All Locations' : location}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Experience Filter */}
-            <div>
-              <label className="block text-neutral-300 font-semibold mb-2">Experience</label>
-              <select
-                value={selectedExperience}
-                onChange={e => setSelectedExperience(e.target.value)}
-                className="w-full px-4 py-2 bg-neutral-900 border-2 border-neutral-700 text-white rounded-lg focus:outline-none focus:border-blue-500"
-              >
-                <option value="all">All Experience Levels</option>
-                <option value="0-2">0-2 years</option>
-                <option value="2-5">2-5 years</option>
-                <option value="5+">5+ years</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Clear Filters Button */}
-          {(selectedJobType !== 'all' || selectedLocation !== 'all' || selectedExperience !== 'all' || searchTerm) && (
-            <button
-              onClick={() => {
-                setSelectedJobType('all');
-                setSelectedLocation('all');
-                setSelectedExperience('all');
-                setSearchTerm('');
-              }}
-              className="mt-4 bg-neutral-700 hover:bg-neutral-600 text-white font-semibold px-4 py-2 rounded-lg transition-colors"
+            <select
+              value={selectedJobType}
+              onChange={e => setSelectedJobType(e.target.value)}
+              className="rounded-xl bg-neutral-950 border border-neutral-700 px-4 py-3"
             >
-              Clear All Filters
-            </button>
-          )}
+              <option value="all">All Job Types</option>
+              {[...new Set(jobs.map(j => j.jobType))].map(t => (
+                <option key={t}>{t}</option>
+              ))}
+            </select>
+
+            <select
+              value={selectedLocation}
+              onChange={e => setSelectedLocation(e.target.value)}
+              className="rounded-xl bg-neutral-950 border border-neutral-700 px-4 py-3"
+            >
+              <option value="all">All Locations</option>
+              {[...new Set(jobs.map(j => j.location))].map(l => (
+                <option key={l}>{l}</option>
+              ))}
+            </select>
+
+            <select
+              value={selectedExperience}
+              onChange={e => setSelectedExperience(e.target.value)}
+              className="rounded-xl bg-neutral-950 border border-neutral-700 px-4 py-3"
+            >
+              <option value="all">All Experience</option>
+              <option value="0-2">0–2 years</option>
+              <option value="2-5">2–5 years</option>
+              <option value="5+">5+ years</option>
+            </select>
+          </div>
         </div>
 
-        {/* Jobs Grid */}
+        {/* JOB GRID */}
         {filteredJobs.length === 0 ? (
-          <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-12 text-center">
-            <p className="text-neutral-400 text-lg">No jobs found. Try different search terms.</p>
+          <div className="text-center py-24 text-neutral-400 text-lg">
+            No matching jobs found.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredJobs.map((job, index) => (
-              <motion.div 
-                key={job._id} 
-                initial={{ opacity: 0, y: 10 }}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+            {filteredJobs.map((job, i) => (
+              <motion.div
+                key={job._id}
+                initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: index * 0.05 }}
-                whileHover={{ scale: 1.02 }}
-                className="bg-neutral-800 border border-neutral-700 rounded-lg p-6 cursor-pointer"
+                transition={{ delay: i * 0.04 }}
+                whileHover={{ y: -12 }}
                 onClick={() => setSelectedJob(job)}
+                className="group relative rounded-3xl bg-neutral-900/80 border border-neutral-800 p-7 cursor-pointer hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all"
               >
-                <div className="mb-4">
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-2xl font-bold text-white mb-2">{job.jobTitle}</h3>
-                    {!job.isOpen && (
-                      <span className="bg-red-900/50 border border-red-700 text-red-300 text-xs font-bold px-3 py-1 rounded-full">
-                        CLOSED
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center text-neutral-400 mb-2">
-                    <span className="ml-0">{job.location}</span>
-                  </div>
+                <h3 className="text-xl font-bold mb-1">
+                  {job.jobTitle}
+                </h3>
+
+                <div className="flex flex-wrap gap-4 text-sm text-neutral-400 mb-4">
+                  <span className="flex items-center gap-1">
+                    <MapPin size={14} /> {job.location}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Briefcase size={14} /> {job.jobType}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock size={14} /> {job.experience || '—'} yrs
+                  </span>
                 </div>
 
-                <p className="text-neutral-400 text-sm mb-4 line-clamp-3">{job.jobDescription}</p>
+                <p className="text-neutral-300 text-sm line-clamp-3 mb-6">
+                  {job.jobDescription}
+                </p>
 
-                <div className="mb-4">
-                  <div className="flex flex-wrap gap-2">
-                    <span className="bg-blue-900/50 text-blue-300 border border-blue-700 text-xs font-semibold px-3 py-1 rounded-full">
-                      {job.jobType}
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {job.requiredSkills?.slice(0, 3).map((skill, idx) => (
+                    <span
+                      key={idx}
+                      className="text-xs bg-neutral-800 px-3 py-1 rounded-full"
+                    >
+                      {skill}
                     </span>
-                    {job.vacancies && (
-                      <span className="bg-purple-900/50 text-purple-300 border border-purple-700 text-xs font-semibold px-3 py-1 rounded-full">
-                        {job.vacancies} {job.vacancies === 1 ? 'Vacancy' : 'Vacancies'}
-                      </span>
-                    )}
-                    {job.requiredSkills && job.requiredSkills.slice(0, 2).map((skill, idx) => (
-                      <span key={idx} className="bg-neutral-700 text-neutral-300 border border-neutral-600 text-xs font-semibold px-3 py-1 rounded-full">
-                        {skill}
-                      </span>
-                    ))}
-                    {job.requiredSkills && job.requiredSkills.length > 2 && (
-                      <span className="bg-neutral-700 text-neutral-300 border border-neutral-600 text-xs font-semibold px-3 py-1 rounded-full">
-                        +{job.requiredSkills.length - 2} more
-                      </span>
-                    )}
-                  </div>
+                  ))}
                 </div>
 
-                <button 
-                  onClick={(e) => {
+                <button
+                  onClick={e => {
                     e.stopPropagation();
-                    if (!job.isOpen) {
-                      alert('This job opening is closed and no longer accepting applications.');
-                      return;
-                    }
                     setSelectedJob(job);
                   }}
-                  disabled={!isCandidate || hasApplied(job._id) || applyingJobId === job._id || !job.isOpen}
-                  className={`w-full font-semibold py-2 rounded-lg transition-colors ${
-                    !job.isOpen
-                      ? 'bg-red-900/50 border border-red-600 text-red-300 cursor-not-allowed'
-                      : hasApplied(job._id)
-                      ? getApplicationStatus(job._id) === 'shortlisted'
-                        ? 'bg-green-900/50 border border-green-600 text-green-300 cursor-not-allowed'
-                        : getApplicationStatus(job._id) === 'rejected'
-                        ? 'bg-red-900/50 border border-red-600 text-red-300 cursor-not-allowed'
-                        : 'bg-blue-900/50 border border-blue-600 text-blue-300 cursor-not-allowed'
-                      : isCandidate
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-neutral-700 text-neutral-500 cursor-not-allowed'
-                  }`}
+                  className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 transition"
                 >
-                  {!job.isOpen
-                    ? 'CLOSED'
-                    : applyingJobId === job._id
-                    ? 'Applying...'
-                    : hasApplied(job._id)
-                    ? getApplicationStatus(job._id) === 'shortlisted'
-                      ? 'Shortlisted'
-                      : getApplicationStatus(job._id) === 'rejected'
-                      ? 'Rejected'
-                      : 'Applied'
-                    : isCandidate
-                    ? 'Apply Now'
-                    : 'Login to Apply'
-                  }
+                  View Details
                 </button>
               </motion.div>
             ))}
           </div>
         )}
 
-        <p className="text-center text-neutral-400 mt-8">Showing {filteredJobs.length} job(s)</p>
-      </div>
-      </div>
+        <p className="text-center text-neutral-500 mt-20">
+          Showing {filteredJobs.length} opportunities
+        </p>
+      </main>
+
       <Footer />
-      
-      {/* Job Details Modal */}
+
       {selectedJob && (
         <JobDetailsModal
           job={selectedJob}

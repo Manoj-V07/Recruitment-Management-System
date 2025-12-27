@@ -15,7 +15,6 @@ const applyForJob = async (req, res) => {
       return res.status(404).json({ message: 'Job not found or closed' });
     }
 
-    // Check if resume was uploaded
     if (!req.file) {
       return res.status(400).json({ message: 'Resume is required' });
     }
