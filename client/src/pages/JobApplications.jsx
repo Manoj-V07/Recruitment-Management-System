@@ -74,6 +74,31 @@ const JobApplications = () => {
     }
   };
 
+
+  const handleDownloadResume = async (applicationId, filename) => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || 'https://recruitment-management-system-3-nvub.onrender.com';
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/resume/download/${applicationId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error();
+
+      const data = await response.json();
+      
+      const a = document.createElement('a');
+      a.href = data.resumeUrl;
+      a.download = data.filename || filename || 'resume.pdf';
+      a.target = '_blank';
+      a.click();
+    } catch (err) {
+      setError('Failed to download resume');
+      console.error('Download resume error:', err);
+    }
+  };
+
+
   const filteredApplications = applications.filter(app => filter === "all" ? true : app.status === filter);
 
   const getStatusColor = (status) => {
@@ -191,13 +216,12 @@ const JobApplications = () => {
                        View Resume
                     </button>
 
-                    <a
-                      href={`http://localhost:5000/resume/download/${app._id}?token=${localStorage.getItem('token')}`}
-                      download
+                    <button
+                      onClick={() => handleDownloadResume(app._id, app.resumeFilename)}
                       className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 font-medium hover:opacity-90"
                     >
                        Download
-                    </a>
+                    </button>
                   </div>
 
                   <div className="mb-6">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { getHRs, approveHR, disapproveHR } from '../api/authApi';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -28,9 +29,9 @@ export default function Admin() {
     try {
       await approveHR(hrId);
       setHrs(prev => prev.map(hr => hr._id === hrId ? { ...hr, isApproved: true } : hr));
-      alert('HR approved successfully');
+      toast.success('HR approved successfully');
     } catch {
-      alert('Failed to approve HR');
+      toast.error('Failed to approve HR');
     }
   };
 
@@ -38,9 +39,9 @@ export default function Admin() {
     try {
       await disapproveHR(hrId);
       setHrs(prev => prev.map(hr => hr._id === hrId ? { ...hr, isApproved: false } : hr));
-      alert('HR disapproved successfully');
+      toast.success('HR disapproved successfully');
     } catch {
-      alert('Failed to disapprove HR');
+      toast.error('Failed to disapprove HR');
     }
   };
 

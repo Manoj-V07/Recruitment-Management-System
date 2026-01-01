@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { createJob, getMyJobs } from '../api/jobApi';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
@@ -39,10 +40,10 @@ export default function HR() {
   }, []);
 
   const submit = async () => {
-    if (!isApproved) return alert('Your account is not approved yet.');
+    if (!isApproved) return toast.error('Your account is not approved yet.');
 
     if (!title.trim() || !description.trim() || !skills.trim() || !location.trim() || vacancies < 1) {
-      alert('Please fill all required fields correctly.');
+      toast.error('Please fill all required fields correctly.');
       return;
     }
 
@@ -58,7 +59,7 @@ export default function HR() {
         vacancies
       });
 
-      alert('Job Created Successfully!');
+      toast.success('Job Created Successfully!');
       setTitle('');
       setDescription('');
       setSkills('');

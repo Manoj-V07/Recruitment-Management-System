@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { registerUser } from '../api/authApi';
 import { motion } from 'framer-motion';
 
@@ -26,7 +27,7 @@ const Register = () => {
       const res = await registerUser(form);
 
       if (res.message) {
-        alert(res.message);
+        toast.success(res.message);
         setForm({ username: '', email: '', password: '', role: 'candidate' });
       }
     } catch (err) {

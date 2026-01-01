@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import PropTypes from 'prop-types';
 
 export default function ResumeViewerModal({ applicationId, filename, onClose }) {
@@ -17,15 +18,15 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
         const ext = filename?.split('.').pop()?.toLowerCase() || 'pdf';
         setFileType(ext);
 
-        const response = await fetch(`http://localhost:5000/resume/view/${applicationId}`, {
+        const API_URL = import.meta.env.VITE_API_URL || 'https://recruitment-management-system-3-nvub.onrender.com';
+        const response = await fetch(`${API_URL}/resume/view/${applicationId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
         if (!response.ok) throw new Error();
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        setResumeUrl(url);
+        const data = await response.json();
+        setResumeUrl(data.resumeUrl);
         setLoading(false);
       } catch {
         setError('Failed to load resume');
@@ -34,30 +35,30 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
     };
 
     if (applicationId) loadResume();
-    return () => resumeUrl && resumeUrl.startsWith('blob:') && URL.revokeObjectURL(resumeUrl);
+    return () => {};
 
   }, [applicationId, filename]);
 
   const handleDownload = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/resume/download/${applicationId}`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'https://recruitment-management-system-3-nvub.onrender.com';
+      const response = await fetch(`${API_URL}/resume/download/${applicationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!response.ok) throw new Error();
 
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-
+      const data = await response.json();
+      
       const a = document.createElement('a');
-      a.href = url;
-      a.download = filename || 'resume.pdf';
+      a.href = data.resumeUrl;
+      a.download = data.filename || filename || 'resume.pdf';
+      a.target = '_blank';
       a.click();
-      URL.revokeObjectURL(url);
 
     } catch {
-      alert('Failed to download resume');
+      toast.error('Failed to download resume');
     }
   };
 

@@ -48,23 +48,10 @@ router.get('/view/:applicationId', flexAuthMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const resumeUrl = application.resumeUrl;
-    const filename = application.resumeFilename || 'resume.pdf';
-    
-    const response = await axios.get(resumeUrl, {
-      responseType: 'arraybuffer'
+    res.json({ 
+      resumeUrl: application.resumeUrl,
+      filename: application.resumeFilename || 'resume.pdf'
     });
-
-    const ext = filename.split('.').pop().toLowerCase();
-    let contentType = 'application/octet-stream';
-    
-    if (ext === 'pdf') contentType = 'application/pdf';
-    else if (ext === 'doc') contentType = 'application/msword';
-    else if (ext === 'docx') contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
-    res.send(response.data);
 
   } catch (error) {
     console.error('Resume view error:', error);
@@ -85,23 +72,10 @@ router.get('/download/:applicationId', flexAuthMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Access denied' });
     }
 
-    const resumeUrl = application.resumeUrl;
-    const filename = application.resumeFilename || 'resume.pdf';
-    
-    const response = await axios.get(resumeUrl, {
-      responseType: 'arraybuffer'
+    res.json({ 
+      resumeUrl: application.resumeUrl,
+      filename: application.resumeFilename || 'resume.pdf'
     });
-
-    const ext = filename.split('.').pop().toLowerCase();
-    let contentType = 'application/octet-stream';
-    
-    if (ext === 'pdf') contentType = 'application/pdf';
-    else if (ext === 'doc') contentType = 'application/msword';
-    else if (ext === 'docx') contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.send(response.data);
 
   } catch (error) {
     console.error('Resume download error:', error);

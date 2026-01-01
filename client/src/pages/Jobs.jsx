@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { getOpenJobs } from '../api/jobApi';
 import { applyForJob, getMyApplications } from '../api/applicationApi';
 import Header from '../components/Header';
@@ -44,7 +45,7 @@ export default function Jobs() {
   }, [isCandidate]);
 
   const handleApply = async (jobId, resumeFile) => {
-    if (!isCandidate) return alert('Only candidates can apply');
+    if (!isCandidate) return toast.error('Only candidates can apply');
 
     try {
       setApplyingJobId(jobId);
@@ -53,8 +54,9 @@ export default function Jobs() {
       await applyForJob(jobId, formData);
       setMyApplications(await getMyApplications());
       setSelectedJob(null);
+      toast.success('Application submitted successfully!');
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to apply');
+      toast.error(err.response?.data?.message || 'Failed to apply');
     } finally {
       setApplyingJobId(null);
     }
