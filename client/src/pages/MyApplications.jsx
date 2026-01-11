@@ -60,34 +60,34 @@ export default function MyApplications() {
 
       <Header />
 
-      <main className="relative z-10 max-w-7xl mx-auto px-6 py-16">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
+          className="mb-8 sm:mb-12 lg:mb-12"
         >
-          <h1 className="text-6xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             My Applications
           </h1>
-          <p className="text-neutral-400 text-lg mt-3">
+          <p className="text-neutral-400 text-sm sm:text-base lg:text-lg mt-2 sm:mt-3">
             Track job statuses and follow your hiring journey.
           </p>
         </motion.div>
 
         {error && (
-          <div className="mb-8 p-4 rounded-xl bg-red-900/40 border border-red-700 text-red-300">
+          <div className="mb-6 sm:mb-8 p-4 sm:p-5 rounded-lg sm:rounded-xl bg-red-900/40 border border-red-700 text-red-300 text-xs sm:text-sm">
             {error}
           </div>
         )}
 
         {/* FILTER BUTTONS */}
-        <div className="flex flex-wrap gap-4 mb-10">
+        <div className="flex flex-wrap gap-2 sm:gap-3 mb-8 sm:mb-10">
           {["all", "applied", "shortlisted", "rejected"].map(type => (
             <button
               key={type}
               onClick={() => setFilter(type)}
-              className={`px-6 py-3 rounded-xl font-semibold capitalize transition-all ${
+              className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold capitalize transition-all text-xs sm:text-sm ${
                 filter === type
                   ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-700/30"
                   : "bg-neutral-900/60 border border-neutral-700 text-neutral-300 hover:bg-neutral-800"
@@ -100,8 +100,8 @@ export default function MyApplications() {
 
         {/* LIST */}
         {filteredApplications.length === 0 ? (
-          <div className="text-center p-16 bg-neutral-900/60 border border-neutral-800 rounded-3xl backdrop-blur">
-            <p className="text-neutral-400 text-lg">
+          <div className="text-center p-8 sm:p-12 lg:p-16 bg-neutral-900/60 border border-neutral-800 rounded-2xl lg:rounded-3xl backdrop-blur">
+            <p className="text-neutral-400 text-sm sm:text-base lg:text-lg">
               {filter === "all"
                 ? "You haven't applied for any jobs yet. Start exploring!"
                 : `No ${filter} applications found.`
@@ -109,26 +109,26 @@ export default function MyApplications() {
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {filteredApplications.map((application, i) => (
               <motion.div
                 key={application._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="border border-neutral-800 bg-neutral-900/70 backdrop-blur rounded-3xl p-8 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-600/10 transition-all"
+                className="border border-neutral-800 bg-neutral-900/70 backdrop-blur rounded-2xl lg:rounded-3xl p-5 sm:p-8 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-600/10 transition-all"
               >
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                   
-                  <div>
-                    <h3 className="text-2xl font-bold mb-2">
+                  <div className="flex-1">
+                    <h3 className="text-lg sm:text-2xl font-bold mb-2 line-clamp-2">
                       {application.jobId?.jobTitle || "Unknown Job"}
                     </h3>
-                    <div className="flex text-neutral-400 text-sm gap-4 mb-4">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-neutral-400 text-xs sm:text-sm mb-4">
                       <span>📍 {application.jobId?.location || "N/A"}</span>
                       <span>💼 {application.jobId?.jobType || "N/A"}</span>
                     </div>
-                    <p className="text-neutral-500 text-sm">
+                    <p className="text-neutral-500 text-xs sm:text-sm">
                       Applied on:{" "}
                       {new Date(application.appliedAt).toLocaleDateString("en-US", {
                         day: "numeric", month: "long", year: "numeric"
@@ -136,7 +136,7 @@ export default function MyApplications() {
                     </p>
                   </div>
 
-                  <span className={`px-5 py-2 rounded-full text-sm font-bold border ${getStatusColor(application.status)}`}>
+                  <span className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-full text-xs sm:text-sm font-bold border whitespace-nowrap flex-shrink-0 ${getStatusColor(application.status)}`}>
                     {getStatusLabel(application.status)}
                   </span>
                 </div>
@@ -145,7 +145,7 @@ export default function MyApplications() {
           </div>
         )}
 
-        <p className="text-center text-neutral-500 mt-12">
+        <p className="text-center text-neutral-500 text-xs sm:text-sm mt-8 sm:mt-12">
           Showing {filteredApplications.length} application(s)
         </p>
 

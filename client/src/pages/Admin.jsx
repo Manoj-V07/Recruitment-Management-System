@@ -62,45 +62,45 @@ export default function Admin() {
 
       <Header />
 
-      <main className="flex-grow px-6 py-16 max-w-7xl mx-auto relative z-10">
+      <main className="flex-grow px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 max-w-7xl mx-auto relative z-10 w-full">
         
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-14"
+          className="mb-8 sm:mb-12 lg:mb-14"
         >
-          <h1 className="text-6xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             HR Management
           </h1>
-          <p className="text-neutral-400 mt-4 text-lg">
+          <p className="text-neutral-400 mt-2 sm:mt-3 lg:mt-4 text-sm sm:text-base lg:text-lg">
             Approve or remove HR accounts with control & transparency.
           </p>
         </motion.div>
 
         {error && (
-          <div className="mb-8 p-4 rounded-xl bg-red-900/40 border border-red-700 text-red-300">
+          <div className="mb-6 sm:mb-8 p-4 sm:p-5 rounded-lg sm:rounded-xl bg-red-900/40 border border-red-700 text-red-300 text-xs sm:text-sm">
             {error}
           </div>
         )}
 
         {hrs.length === 0 ? (
-          <div className="text-center p-16 bg-neutral-900/70 border border-neutral-800 rounded-3xl backdrop-blur">
-            <p className="text-neutral-400 text-lg">No HR applications found</p>
+          <div className="text-center p-8 sm:p-12 lg:p-16 bg-neutral-900/70 border border-neutral-800 rounded-2xl lg:rounded-3xl backdrop-blur">
+            <p className="text-neutral-400 text-sm sm:text-base lg:text-lg">No HR applications found</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {hrs.map((hr, i) => (
               <motion.div
                 key={hr._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="p-8 rounded-3xl bg-neutral-900/70 backdrop-blur border border-neutral-800 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-600/10 transition-all"
+                className="p-6 sm:p-8 rounded-2xl lg:rounded-3xl bg-neutral-900/70 backdrop-blur border border-neutral-800 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-600/10 transition-all"
               >
-                <h3 className="text-xl font-bold mb-1">{hr.username}</h3>
-                <p className="text-neutral-400 mb-6">{hr.email}</p>
+                <h3 className="text-lg sm:text-xl font-bold mb-1">{hr.username}</h3>
+                <p className="text-neutral-400 text-xs sm:text-sm mb-4 sm:mb-6 break-all">{hr.email}</p>
 
-                <span className={`inline-block px-4 py-1.5 mb-6 rounded-full text-sm font-semibold border ${
+                <span className={`inline-block px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6 rounded-full text-xs sm:text-sm font-semibold border ${
                   hr.isApproved
                     ? "bg-green-900/50 border-green-600 text-green-300"
                     : "bg-yellow-900/50 border-yellow-600 text-yellow-300"
@@ -108,11 +108,11 @@ export default function Admin() {
                   {hr.isApproved ? "Approved" : "Pending"}
                 </span>
 
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   <button
                     onClick={() => handleApprove(hr._id)}
                     disabled={hr.isApproved}
-                    className={`w-full py-2.5 rounded-xl font-semibold transition-all ${
+                    className={`w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-semibold transition-all text-xs sm:text-sm ${
                       hr.isApproved
                         ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
                         : "bg-gradient-to-r from-green-600 to-emerald-500 hover:opacity-90"
@@ -124,7 +124,7 @@ export default function Admin() {
                   <button
                     onClick={() => handleDisapprove(hr._id)}
                     disabled={!hr.isApproved}
-                    className={`w-full py-2.5 rounded-xl font-semibold transition-all ${
+                    className={`w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-semibold transition-all text-xs sm:text-sm ${
                       !hr.isApproved
                         ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
                         : "bg-gradient-to-r from-red-600 to-red-800 hover:opacity-90"

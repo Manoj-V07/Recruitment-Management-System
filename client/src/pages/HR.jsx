@@ -87,24 +87,24 @@ export default function HR() {
 
       <Header />
 
-      <div className="flex-grow px-6 py-14 max-w-7xl mx-auto w-full relative z-10">
+      <div className="flex-grow px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-14 max-w-7xl mx-auto w-full relative z-10">
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <h1 className="text-6xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 sm:mb-12 lg:mb-12">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             HR Dashboard
           </h1>
-          <p className="text-neutral-400 mt-3 text-lg">
+          <p className="text-neutral-400 mt-2 sm:mt-3 lg:mt-3 text-sm sm:text-base lg:text-lg">
             Create and manage job postings efficiently.
           </p>
         </motion.div>
 
         {/* Account Status Banner */}
         {!isApproved && (
-          <div className="mb-8 p-6 rounded-2xl bg-yellow-900/40 border border-yellow-600 backdrop-blur flex gap-4">
-            <span className="text-3xl">⚠️</span>
+          <div className="mb-6 sm:mb-8 p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-yellow-900/40 border border-yellow-600 backdrop-blur flex gap-3 sm:gap-4 flex-col sm:flex-row">
+            <span className="text-2xl sm:text-3xl flex-shrink-0">⚠️</span>
             <div>
-              <h3 className="text-xl font-bold text-yellow-300">Account Pending Approval</h3>
-              <p className="text-yellow-200 mt-1">
+              <h3 className="text-lg sm:text-xl font-bold text-yellow-300">Account Pending Approval</h3>
+              <p className="text-yellow-200 mt-1 text-xs sm:text-sm">
                 You cannot create jobs until approved by Admin.
               </p>
             </div>
@@ -127,19 +127,19 @@ export default function HR() {
 
         {/* Error */}
         {error && (
-          <p className="mb-6 p-4 rounded-xl bg-red-900/40 border border-red-700 text-red-300">
+          <p className="mb-6 sm:mb-8 p-4 sm:p-5 rounded-lg sm:rounded-xl bg-red-900/40 border border-red-700 text-red-300 text-xs sm:text-sm">
             {error}
           </p>
         )}
 
         {/* Create Job Form Container */}
-        <div className="bg-neutral-900/60 border border-neutral-800 rounded-3xl p-8 backdrop-blur mb-12">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Create New Job</h2>
+        <div className="bg-neutral-900/60 border border-neutral-800 rounded-2xl lg:rounded-3xl p-5 sm:p-8 backdrop-blur mb-8 sm:mb-12 lg:mb-12">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <h2 className="text-xl sm:text-2xl font-bold">Create New Job</h2>
             <button
               onClick={() => isApproved && setShowForm(!showForm)}
               disabled={!isApproved}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
+              className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all text-xs sm:text-sm ${
                 isApproved
                   ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90"
                   : "bg-neutral-700 cursor-not-allowed"
@@ -153,77 +153,77 @@ export default function HR() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-8 space-y-6 border-t border-neutral-700 pt-8"
+              className="mt-6 sm:mt-8 space-y-4 sm:space-y-6 border-t border-neutral-700 pt-6 sm:pt-8"
             >
               <div>
-                <label className="font-semibold text-neutral-300 mb-1 block">Job Title *</label>
+                <label className="font-semibold text-neutral-300 mb-1 block text-xs sm:text-sm">Job Title *</label>
                 <input
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="e.g., Senior MERN Developer"
-                  className="w-full bg-neutral-950 px-5 py-3 rounded-xl border border-neutral-700 focus:border-blue-500 transition"
+                  className="w-full bg-neutral-950 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-neutral-700 focus:border-blue-500 transition text-xs sm:text-base"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-neutral-300 mb-1 block">Description *</label>
+                <label className="font-semibold text-neutral-300 mb-1 block text-xs sm:text-sm">Description *</label>
                 <textarea
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  className="w-full bg-neutral-950 px-5 py-3 h-28 rounded-xl border border-neutral-700 focus:border-blue-500 transition"
+                  className="w-full bg-neutral-950 px-3 sm:px-5 py-2.5 sm:py-3 h-24 sm:h-28 rounded-lg sm:rounded-xl border border-neutral-700 focus:border-blue-500 transition text-xs sm:text-base"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-neutral-300 mb-1 block">Required Skills *</label>
+                <label className="font-semibold text-neutral-300 mb-1 block text-xs sm:text-sm">Required Skills *</label>
                 <input
                   value={skills}
                   onChange={e => setSkills(e.target.value)}
                   placeholder="React, Node.js, MongoDB"
-                  className="w-full bg-neutral-950 px-5 py-3 rounded-xl border border-neutral-700 focus:border-blue-500 transition"
+                  className="w-full bg-neutral-950 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-neutral-700 focus:border-blue-500 transition text-xs sm:text-base"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label className="font-semibold text-neutral-300 mb-1 block">Experience (years)</label>
+                  <label className="font-semibold text-neutral-300 mb-1 block text-xs sm:text-sm">Experience (years)</label>
                   <input
                     type="number"
                     min="0"
                     value={experience}
                     onChange={e => setExperience(e.target.value)}
-                    className="w-full bg-neutral-950 px-5 py-3 rounded-xl border border-neutral-700 focus:border-blue-500 transition"
+                    className="w-full bg-neutral-950 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-neutral-700 focus:border-blue-500 transition text-xs sm:text-base"
                   />
                 </div>
 
                 <div>
-                  <label className="font-semibold text-neutral-300 mb-1 block">Vacancies *</label>
+                  <label className="font-semibold text-neutral-300 mb-1 block text-xs sm:text-sm">Vacancies *</label>
                   <input
                     type="number"
                     min="1"
                     value={vacancies}
                     onChange={e => setVacancies(e.target.value)}
-                    className="w-full bg-neutral-950 px-5 py-3 rounded-xl border border-neutral-700 focus:border-blue-500 transition"
+                    className="w-full bg-neutral-950 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-neutral-700 focus:border-blue-500 transition text-xs sm:text-base"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label className="font-semibold text-neutral-300 mb-1 block">Location *</label>
+                  <label className="font-semibold text-neutral-300 mb-1 block text-xs sm:text-sm">Location *</label>
                   <input
                     value={location}
                     onChange={e => setLocation(e.target.value)}
-                    className="w-full bg-neutral-950 px-5 py-3 rounded-xl border border-neutral-700 focus:border-blue-500 transition"
+                    className="w-full bg-neutral-950 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-neutral-700 focus:border-blue-500 transition text-xs sm:text-base"
                   />
                 </div>
 
                 <div>
-                  <label className="font-semibold text-neutral-300 mb-1 block">Job Type</label>
+                  <label className="font-semibold text-neutral-300 mb-1 block text-xs sm:text-sm">Job Type</label>
                   <select
                     value={jobType}
                     onChange={e => setJobType(e.target.value)}
-                    className="w-full bg-neutral-950 px-5 py-3 rounded-xl border border-neutral-700 focus:border-blue-500 transition"
+                    className="w-full bg-neutral-950 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-neutral-700 focus:border-blue-500 transition text-xs sm:text-base"
                   >
                     <option>Full-Time</option>
                     <option>Part-Time</option>
@@ -235,7 +235,7 @@ export default function HR() {
               <button
                 onClick={submit}
                 disabled={loading}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 font-bold hover:opacity-90 disabled:opacity-50"
+                className="w-full py-2.5 sm:py-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-green-600 to-emerald-500 font-bold hover:opacity-90 disabled:opacity-50 text-xs sm:text-base"
               >
                 {loading ? "Creating..." : "Create Job"}
               </button>
@@ -244,32 +244,32 @@ export default function HR() {
         </div>
 
         {/* Job List */}
-        <div className="bg-neutral-900/50 border border-neutral-800 rounded-3xl p-10 backdrop-blur">
-          <h2 className="text-3xl font-bold mb-10">My Jobs</h2>
+        <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl lg:rounded-3xl p-6 sm:p-8 lg:p-10 backdrop-blur">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-10">My Jobs</h2>
 
           {jobs.length === 0 ? (
-            <p className="text-center py-10 text-neutral-500">No jobs created yet</p>
+            <p className="text-center py-8 sm:py-10 text-neutral-500 text-xs sm:text-sm">No jobs created yet</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
               {jobs.map((job, i) => (
                 <motion.div
                   key={job._id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="p-7 rounded-2xl bg-neutral-950/60 border border-neutral-800 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-600/10 transition-all"
+                  className="p-5 sm:p-7 rounded-xl sm:rounded-2xl bg-neutral-950/60 border border-neutral-800 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-600/10 transition-all"
                 >
-                  <h3 className="text-xl font-bold mb-2">{job.jobTitle}</h3>
-                  <p className="text-neutral-400 text-sm mb-4 line-clamp-2">{job.jobDescription}</p>
+                  <h3 className="text-lg sm:text-xl font-bold mb-2">{job.jobTitle}</h3>
+                  <p className="text-neutral-400 text-xs sm:text-sm mb-4 line-clamp-2">{job.jobDescription}</p>
 
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="px-3 py-1 rounded-full text-xs bg-blue-900/50 border border-blue-700">{job.jobType}</span>
-                    <span className="px-3 py-1 rounded-full text-xs bg-purple-900/50 border border-purple-700">{job.location}</span>
-                    <span className="px-3 py-1 rounded-full text-xs bg-neutral-700 border border-neutral-600">
+                    <span className="px-2 sm:px-3 py-1 rounded-full text-xs bg-blue-900/50 border border-blue-700">{job.jobType}</span>
+                    <span className="px-2 sm:px-3 py-1 rounded-full text-xs bg-purple-900/50 border border-purple-700">{job.location}</span>
+                    <span className="px-2 sm:px-3 py-1 rounded-full text-xs bg-neutral-700 border border-neutral-600">
                       {job.vacancies} {job.vacancies === 1 ? "Vacancy" : "Vacancies"}
                     </span>
                     {!job.isOpen && (
-                      <span className="px-3 py-1 rounded-full text-xs bg-red-900/50 border border-red-700 text-red-300">
+                      <span className="px-2 sm:px-3 py-1 rounded-full text-xs bg-red-900/50 border border-red-700 text-red-300">
                         CLOSED
                       </span>
                     )}
@@ -277,7 +277,7 @@ export default function HR() {
 
                   <button
                     onClick={() => navigate('/job-applications', { state: { jobId: job._id } })}
-                    className="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 font-semibold hover:opacity-90"
+                    className="w-full mt-4 py-2 sm:py-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 font-semibold hover:opacity-90 text-xs sm:text-sm"
                   >
                     View Applications
                   </button>

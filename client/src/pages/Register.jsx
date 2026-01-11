@@ -38,11 +38,11 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-950 text-white p-4 relative overflow-hidden select-none">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-950 text-white px-3 sm:px-4 relative overflow-hidden select-none">
 
       {/* Ambient Glow */}
-      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-blue-600/20 blur-[150px]" />
-      <div className="absolute bottom-0 -right-40 w-[500px] h-[500px] bg-purple-600/20 blur-[150px]" />
+      <div className="absolute -top-40 -left-40 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-blue-600/20 blur-[100px] sm:blur-[150px]" />
+      <div className="absolute bottom-0 -right-40 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-purple-600/20 blur-[100px] sm:blur-[150px]" />
 
       <motion.form
         initial={{ opacity: 0, y: 25 }}
@@ -50,16 +50,16 @@ const Register = () => {
         transition={{ duration: 0.35 }}
         onSubmit={handleSubmit}
         className="relative bg-neutral-900/80 backdrop-blur-xl border border-neutral-800
-        rounded-3xl p-8 sm:p-10 w-full max-w-sm sm:max-w-md shadow-[0_0_40px_rgba(0,0,0,0.6)]"
+        rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 w-full max-w-sm lg:max-w-md shadow-[0_0_40px_rgba(0,0,0,0.6)]"
       >
 
-        <h2 className="text-4xl sm:text-5xl font-extrabold text-center
-        bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-8">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-center
+        bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-6 sm:mb-8">
           Create Account
         </h2>
 
         {error && (
-          <div className="mb-5 p-4 text-sm bg-red-900/40 border border-red-700 text-red-300 rounded-xl text-center">
+          <div className="mb-5 p-3 sm:p-4 text-xs sm:text-sm bg-red-900/40 border border-red-700 text-red-300 rounded-lg sm:rounded-xl text-center">
             {error}
           </div>
         )}
@@ -69,8 +69,8 @@ const Register = () => {
           {label: "Email", type: "email", name: "email", placeholder: "mail@example.com"},
           {label: "Password", type: "password", name: "password", placeholder: "********"},
         ].map((field) => (
-          <div className="mb-5" key={field.name}>
-            <label className="block text-neutral-300 font-semibold mb-2 text-sm sm:text-base">
+          <div className="mb-4 sm:mb-5" key={field.name}>
+            <label className="block text-neutral-300 font-semibold mb-2 text-xs sm:text-sm">
               {field.label}
             </label>
             <input
@@ -80,22 +80,22 @@ const Register = () => {
               required
               value={form[field.name]}
               onChange={handleChange}
-              className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl
-              focus:border-blue-500 transition text-sm sm:text-base"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-neutral-950 border border-neutral-700 rounded-lg sm:rounded-xl
+              focus:border-blue-500 transition text-xs sm:text-base"
             />
           </div>
         ))}
 
-        <div className="mb-6">
-          <label className="block text-neutral-300 font-semibold mb-2 text-sm sm:text-base">
+        <div className="mb-6 sm:mb-8">
+          <label className="block text-neutral-300 font-semibold mb-2 text-xs sm:text-sm">
             Select Role
           </label>
           <select
             name="role"
             value={form.role}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-neutral-950 border border-neutral-700 rounded-xl
-            focus:border-blue-500 transition text-sm sm:text-base"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-neutral-950 border border-neutral-700 rounded-lg sm:rounded-xl
+            focus:border-blue-500 transition text-xs sm:text-base"
           >
             <option value="candidate">Candidate</option>
             <option value="hr">HR</option>
@@ -105,15 +105,15 @@ const Register = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 rounded-xl font-semibold
+          className="w-full py-2.5 sm:py-3 rounded-lg sm:rounded-xl font-semibold
           bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90
           disabled:opacity-50 disabled:cursor-not-allowed
-          text-sm sm:text-base transition"
+          text-xs sm:text-base transition"
         >
           {loading ? "Registering..." : "Register"}
         </button>
 
-        <p className="mt-6 text-center text-neutral-400 text-sm sm:text-base">
+        <p className="mt-4 sm:mt-6 text-center text-neutral-400 text-xs sm:text-sm">
           Already have an account?{" "}
           <a href="/login" className="font-semibold text-blue-400 hover:text-blue-300 transition">
             Login here

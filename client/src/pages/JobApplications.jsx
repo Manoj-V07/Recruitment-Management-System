@@ -159,31 +159,31 @@ const JobApplications = () => {
 
       <Header />
 
-      <div className="flex-grow p-8 max-w-7xl mx-auto relative z-10">
+      <div className="flex-grow p-5 sm:p-6 lg:p-8 max-w-7xl mx-auto relative z-10 w-full">
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
 
-          <h2 className="text-6xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2 sm:mb-3">
             Job Applications
           </h2>
 
-          <p className="text-neutral-400/80 text-lg mb-10">
+          <p className="text-neutral-400/80 text-xs sm:text-sm lg:text-lg mb-6 sm:mb-8 lg:mb-10">
             {jobId ? 'Manage applications for this job' : 'Review all applied candidates'}
           </p>
 
           {error && (
-            <div className="mb-6 p-5 rounded-2xl bg-red-900/40 border border-red-700 text-red-300 font-medium backdrop-blur">
+            <div className="mb-5 sm:mb-6 p-3 sm:p-5 rounded-lg sm:rounded-2xl bg-red-900/40 border border-red-700 text-red-300 font-medium backdrop-blur text-xs sm:text-sm">
               {error}
             </div>
           )}
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-3 mb-10">
+          <div className="flex flex-wrap gap-2 sm:gap-3 mb-8 sm:mb-10">
             {Object.keys(statusCounts).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-5 py-2.5 rounded-xl font-semibold capitalize transition-all ${
+                className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-semibold capitalize transition-all text-xs sm:text-sm ${
                   filter === f
                     ? "bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg shadow-blue-700/40"
                     : "bg-neutral-900/60 border border-neutral-700 text-neutral-300 hover:bg-neutral-800"
@@ -194,9 +194,9 @@ const JobApplications = () => {
             ))}
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {filteredApplications.length === 0 ? (
-              <div className="text-center p-16 bg-neutral-900/60 backdrop-blur rounded-3xl border border-neutral-800 text-neutral-400">
+              <div className="text-center p-8 sm:p-12 lg:p-16 bg-neutral-900/60 backdrop-blur rounded-2xl lg:rounded-3xl border border-neutral-800 text-neutral-400 text-xs sm:text-sm lg:text-base">
                 No applications match this filter.
               </div>
             ) : (
@@ -204,13 +204,13 @@ const JobApplications = () => {
                 <motion.div key={app._id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="group border border-neutral-800 p-7 rounded-3xl bg-neutral-900/70 backdrop-blur hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-600/10 transition-all"
+                  className="group border border-neutral-800 p-5 sm:p-7 rounded-2xl lg:rounded-3xl bg-neutral-900/70 backdrop-blur hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-600/10 transition-all"
                 >
 
-                  <h3 className="text-2xl font-bold mb-2">
+                  <h3 className="text-lg sm:text-2xl font-bold mb-2 line-clamp-2">
                     {app.jobId?.jobTitle || "Unknown Job"}
                   </h3>
-                  <div className="text-neutral-400 flex gap-4 text-sm mb-6">
+                  <div className="text-neutral-400 flex flex-col sm:flex-row gap-2 sm:gap-4 text-xs sm:text-sm mb-4 sm:mb-6">
                     <span>📍 {app.jobId?.location || "N/A"}</span>
                     <span>💼 {app.jobId?.jobType || "N/A"}</span>
                     {app.jobId?.isOpen !== undefined && (
@@ -220,19 +220,19 @@ const JobApplications = () => {
                     )}
                   </div>
 
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold">
+                  <div className="mb-4 sm:mb-6">
+                    <h4 className="text-sm sm:text-lg font-semibold">
                       {app.candidateId?.username || "Unknown Candidate"}
                     </h4>
-                    <p className="text-neutral-400">📧 {app.candidateId?.email}</p>
-                    <span className={`inline-block px-4 py-1.5 mt-3 rounded-full border font-semibold text-sm ${getStatusColor(app.status)}`}>
+                    <p className="text-neutral-400 text-xs sm:text-sm">📧 {app.candidateId?.email}</p>
+                    <span className={`inline-block px-3 sm:px-4 py-1.5 sm:py-2 mt-2 sm:mt-3 rounded-full border font-semibold text-xs sm:text-sm ${getStatusColor(app.status)}`}>
                       Status: {app.status}
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap gap-3 mb-6">
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
                     <button
-                      className="px-4 py-2 rounded-lg bg-gradient-to-r from-green-600 to-emerald-500 font-medium hover:opacity-90"
+                      className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-lg bg-gradient-to-r from-green-600 to-emerald-500 font-medium hover:opacity-90 text-xs sm:text-sm"
                       onClick={() => setViewingResume({ applicationId: app._id, filename: app.resumeFilename })}
                     >
                        View Resume
@@ -240,21 +240,21 @@ const JobApplications = () => {
 
                     <button
                       onClick={() => handleDownloadResume(app._id, app.resumeFilename)}
-                      className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 font-medium hover:opacity-90"
+                      className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 font-medium hover:opacity-90 text-xs sm:text-sm"
                     >
                        Download
                     </button>
                   </div>
 
-                  <div className="mb-6">
-                    <p className="text-neutral-400 text-sm mb-2">Update Status:</p>
-                    <div className="flex flex-wrap gap-3">
+                  <div className="mb-4 sm:mb-6">
+                    <p className="text-neutral-400 text-xs sm:text-sm mb-2">Update Status:</p>
+                    <div className="flex flex-wrap gap-2 sm:gap-3">
                       {["applied", "shortlisted", "rejected"].map((status) => (
                         <button
                           key={status}
                           disabled={updatingId === app._id || app.status === status}
                           onClick={() => handleStatusUpdate(app._id, status)}
-                          className={`px-4 py-2 rounded-lg font-medium capitalize ${
+                          className={`px-3 sm:px-4 py-2 rounded-lg font-medium capitalize text-xs sm:text-sm ${
                             app.status === status
                               ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
                               : "bg-neutral-800 hover:bg-neutral-700"
@@ -270,14 +270,14 @@ const JobApplications = () => {
                     <button
                       onClick={() => handleCloseJob(app.jobId._id)}
                       disabled={closingJobId === app.jobId._id}
-                      className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-red-800 font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-wait"
+                      className="px-3 sm:px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-red-800 font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-wait text-xs sm:text-sm"
                     >
                       {closingJobId === app.jobId._id ? "⏳ Closing..." : " Close Job"}
                     </button>
                   )}
 
                   {!app.jobId?.isOpen && (
-                    <p className="text-red-400 font-semibold">🔒 This job posting is closed</p>
+                    <p className="text-red-400 font-semibold text-xs sm:text-sm">🔒 This job posting is closed</p>
                   )}
 
                 </motion.div>

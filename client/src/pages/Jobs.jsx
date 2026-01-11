@@ -107,40 +107,40 @@ export default function Jobs() {
 
       <Header />
 
-      <main className="relative z-10 max-w-7xl mx-auto px-5 py-16">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         {/* HERO */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-16"
+          className="mb-12 lg:mb-16"
         >
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight">
             Explore{' '}
             <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               Real Opportunities
             </span>
           </h1>
-          <p className="text-neutral-400 mt-4 max-w-2xl text-lg">
+          <p className="text-neutral-400 mt-3 sm:mt-4 max-w-2xl text-sm sm:text-base lg:text-lg">
             High-quality roles from verified companies. Apply confidently.
           </p>
 
-          <div className="mt-8 max-w-2xl">
+          <div className="mt-6 sm:mt-8 max-w-2xl">
             <input
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="Search roles, skills or location"
-              className="w-full px-6 py-4 rounded-2xl bg-neutral-900/70 backdrop-blur border border-neutral-700 focus:ring-2 focus:ring-blue-500/40 transition text-lg"
+              className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-2xl bg-neutral-900/70 backdrop-blur border border-neutral-700 focus:ring-2 focus:ring-blue-500/40 transition text-sm sm:text-base"
             />
           </div>
         </motion.div>
 
         {/* FILTER BAR */}
-        <div className="mb-14 rounded-3xl bg-neutral-900/70 backdrop-blur border border-neutral-800 p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mb-10 lg:mb-14 rounded-2xl lg:rounded-3xl bg-neutral-900/70 backdrop-blur border border-neutral-800 p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <select
               value={selectedJobType}
               onChange={e => setSelectedJobType(e.target.value)}
-              className="rounded-xl bg-neutral-950 border border-neutral-700 px-4 py-3"
+              className="rounded-lg lg:rounded-xl bg-neutral-950 border border-neutral-700 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base focus:border-blue-500 transition"
             >
               <option value="all">All Job Types</option>
               {[...new Set(jobs.map(j => j.jobType))].map(t => (
@@ -151,7 +151,7 @@ export default function Jobs() {
             <select
               value={selectedLocation}
               onChange={e => setSelectedLocation(e.target.value)}
-              className="rounded-xl bg-neutral-950 border border-neutral-700 px-4 py-3"
+              className="rounded-lg lg:rounded-xl bg-neutral-950 border border-neutral-700 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base focus:border-blue-500 transition"
             >
               <option value="all">All Locations</option>
               {[...new Set(jobs.map(j => j.location))].map(l => (
@@ -162,7 +162,7 @@ export default function Jobs() {
             <select
               value={selectedExperience}
               onChange={e => setSelectedExperience(e.target.value)}
-              className="rounded-xl bg-neutral-950 border border-neutral-700 px-4 py-3"
+              className="rounded-lg lg:rounded-xl bg-neutral-950 border border-neutral-700 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base focus:border-blue-500 transition"
             >
               <option value="all">All Experience</option>
               <option value="0-2">0–2 years</option>
@@ -174,11 +174,11 @@ export default function Jobs() {
 
         {/* JOB GRID */}
         {filteredJobs.length === 0 ? (
-          <div className="text-center py-24 text-neutral-400 text-lg">
+          <div className="text-center py-16 sm:py-24 text-neutral-400 text-sm sm:text-lg">
             No matching jobs found.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
             {filteredJobs.map((job, i) => (
               <motion.div
                 key={job._id}
@@ -187,14 +187,14 @@ export default function Jobs() {
                 transition={{ delay: i * 0.04 }}
                 whileHover={{ y: -12 }}
                 onClick={() => setSelectedJob(job)}
-                className="group relative rounded-3xl bg-neutral-900/80 border border-neutral-800 p-7 cursor-pointer hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all"
+                className="group relative rounded-2xl lg:rounded-3xl bg-neutral-900/80 border border-neutral-800 p-5 sm:p-7 cursor-pointer hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transition-all"
               >
-                <h3 className="text-xl font-bold mb-1">
+                <h3 className="text-lg sm:text-xl font-bold mb-2 line-clamp-2">
                   {job.jobTitle}
                 </h3>
 
-                <div className="flex flex-wrap gap-4 text-sm text-neutral-400 mb-4">
-                  <span className="flex items-center gap-1">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-neutral-400 mb-4">
+                  <span className="flex items-center gap-1 flex-wrap">
                     <MapPin size={14} /> {job.location}
                   </span>
                   <span className="flex items-center gap-1">
