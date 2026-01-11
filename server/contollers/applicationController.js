@@ -1,40 +1,41 @@
 const Application = require('../models/Application');
 const Job = require('../models/Job');
 
-
 const applyForJob = async (req, res) => {
   try {
-    const { jobId } = req.params;
-
     if (req.user.role !== 'candidate') {
-      return res.status(403).json({ message: 'Only candidates can apply for jobs' });
+      return res.status(403).json({ message: 'Only candidates can apply' });
     }
 
-    const job = await Job.findById(jobId);
+    const job = await Job.findById(req.params.jobId);
     if (!job || !job.isOpen) {
       return res.status(404).json({ message: 'Job not found or closed' });
     }
 
     if (!req.file) {
-      return res.status(400).json({ message: 'Resume is required' });
+      return res.status(400).json({ message: 'PDF resume required' });
     }
 
-    const applicationData = {
-      jobId,
+    const application = await Application.create({
+      jobId: job._id,
       candidateId: req.user._id,
-      resumeUrl: req.file.path,
-      resumeFilename: req.file.originalname
-    };
+      resumeUrl: req.file.path,          // raw Cloudinary URL
+      resumeFilename: req.file.originalname,
+    });
 
-    const application = await Application.create(applicationData);
-
-    return res.status(201).json({ message: 'Job applied successfully', applicationId: application._id });
-
-  } catch (error) {
-    console.error('Apply job error:', error);
-    return res.status(500).json({ message: 'Server error' });
+    res.status(201).json({
+      message: 'Applied successfully',
+      applicationId: application._id,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
+
+module.exports = { applyForJob };
+
+
 
 const getMyApplications = async (req, res) => {
   try {

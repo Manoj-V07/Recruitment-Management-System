@@ -79,19 +79,41 @@ const JobApplications = () => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'https://recruitment-management-system-3-nvub.onrender.com';
       const token = localStorage.getItem('token');
+      
+      // Fetch as blob from backend streaming endpoint
       const response = await fetch(`${API_URL}/resume/download/${applicationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (!response.ok) throw new Error();
+      if (!response.ok) throw new Error('Download failed');
 
-      const data = await response.json();
+      // Get the blob
+      const blob = await response.blob();
       
+      // Extract filename from Content-Disposition header or use provided filename
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let downloadFilename = filename || 'resume.pdf';
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          downloadFilename = filenameMatch[1].replace(/['"]/g, '');
+          downloadFilename = decodeURIComponent(downloadFilename);
+        }
+      }
+      
+      // Create blob URL and trigger download
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = data.resumeUrl;
-      a.download = data.filename || filename || 'resume.pdf';
-      a.target = '_blank';
+      a.href = url;
+      a.download = downloadFilename;
+      document.body.appendChild(a);
       a.click();
+      
+      // Cleanup
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
     } catch (err) {
       setError('Failed to download resume');
       console.error('Download resume error:', err);

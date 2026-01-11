@@ -6,22 +6,16 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: 'resumes',
-    resource_type: 'raw', 
-    allowed_formats: ['pdf', 'doc', 'docx'],
+    resource_type: 'raw',
+    allowed_formats: ['pdf'], 
     public_id: (req, file) => {
-      const originalName = file.originalname.replace(/\.[^/.]+$/, '');
-      return `resume_${req.user._id}_${Date.now()}_${originalName}`;
+      const base = file.originalname.replace(/\.[^/.]+$/, '');
+      return `resume_${req.user._id}_${Date.now()}_${base}`;
     },
-    use_filename: true,
-    unique_filename: false,
   },
 });
 
-const uploadResume = multer({
+module.exports = multer({
   storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, 
-  },
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
-
-module.exports = uploadResume;

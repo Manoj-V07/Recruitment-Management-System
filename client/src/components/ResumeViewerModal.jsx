@@ -1,150 +1,109 @@
 import { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
 import PropTypes from 'prop-types';
 
 export default function ResumeViewerModal({ applicationId, filename, onClose }) {
+  const [resumeUrl, setResumeUrl] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [resumeUrl, setResumeUrl] = useState('');
-  const [fileType, setFileType] = useState('');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const loadResume = async () => {
+    const load = async () => {
       try {
-        setLoading(true);
-        setError('');
         const token = localStorage.getItem('token');
+        const API = import.meta.env.VITE_API_URL;
 
-        const ext = filename?.split('.').pop()?.toLowerCase() || 'pdf';
-        setFileType(ext);
-
-        const API_URL = import.meta.env.VITE_API_URL || 'https://recruitment-management-system-3-nvub.onrender.com';
-        const response = await fetch(`${API_URL}/resume/view/${applicationId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (!response.ok) throw new Error();
-
-        const data = await response.json();
-        setResumeUrl(data.resumeUrl);
+        // For PDF preview, we'll use the view endpoint directly with auth token in URL
+        const isPdf = filename?.toLowerCase().endsWith('.pdf');
+        
+        if (isPdf) {
+          // Set the URL with token as query parameter for iframe to work
+          setResumeUrl(`${API}/resume/view/${applicationId}?token=${token}`);
+        } else {
+          setError('Only PDF files can be previewed');
+        }
+        
         setLoading(false);
-      } catch {
+      } catch (err) {
+        console.error('Load error:', err);
         setError('Failed to load resume');
         setLoading(false);
       }
     };
 
-    if (applicationId) loadResume();
-    return () => {};
-
+    load();
   }, [applicationId, filename]);
+
+  const isPdf = filename?.toLowerCase().endsWith('.pdf');
 
   const handleDownload = async () => {
     try {
       const token = localStorage.getItem('token');
-      const API_URL = import.meta.env.VITE_API_URL || 'https://recruitment-management-system-3-nvub.onrender.com';
-      const response = await fetch(`${API_URL}/resume/download/${applicationId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+      const API = import.meta.env.VITE_API_URL;
+
+      const response = await fetch(`${API}/resume/download/${applicationId}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error();
+      if (!response.ok) {
+        alert('Failed to download resume');
+        return;
+      }
 
-      const data = await response.json();
-      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = data.resumeUrl;
-      a.download = data.filename || filename || 'resume.pdf';
-      a.target = '_blank';
+      a.href = url;
+      a.download = filename || 'resume.pdf';
+      document.body.appendChild(a);
       a.click();
-
-    } catch {
-      toast.error('Failed to download resume');
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Failed to download resume');
     }
   };
 
-  const clickBackdrop = (e) => e.target === e.currentTarget && onClose();
+  if (loading) return <div className="text-white">Loading...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
-    <div
-      onClick={clickBackdrop}
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[200] p-6"
-    >
-
-      {/* Modal Container */}
-      <div className="w-full max-w-6xl h-[90vh] flex flex-col bg-neutral-900/80 backdrop-blur-xl
-      border border-neutral-800 rounded-3xl shadow-[0_0_60px_rgba(0,0,0,0.6)] overflow-hidden">
-
-        {/* Header */}
-        <div className="px-6 py-4 flex justify-between items-center border-b border-neutral-800 bg-neutral-900/90">
-          <h2 className="text-3xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Resume Viewer
-          </h2>
-
-          <div className="flex gap-3">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+      <div className="w-[90%] h-[90%] bg-neutral-900 rounded-xl flex flex-col">
+        <div className="p-4 flex justify-between items-center">
+          <h2 className="text-xl font-bold">{filename}</h2>
+          <div className="flex gap-2">
+            {isPdf && resumeUrl && (
+              <button
+                onClick={() => window.open(resumeUrl, '_blank')}
+                className="px-4 py-2 bg-green-600 rounded"
+              >
+                Open in New Tab
+              </button>
+            )}
             <button
               onClick={handleDownload}
-              className="px-5 py-2 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 transition disabled:opacity-50"
+              className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
             >
               Download
             </button>
-
-            <button
-              onClick={onClose}
-              className="px-5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 transition font-semibold"
-            >
+            <button onClick={onClose} className="px-4 py-2 bg-neutral-700 rounded">
               Close
             </button>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-grow bg-neutral-950 overflow-hidden flex items-center justify-center">
-
-          {loading && (
-            <div className="text-center animate-in fade-in duration-200">
-              <div className="animate-spin h-14 w-14 rounded-full border-4 border-blue-600 border-t-transparent mx-auto"></div>
-              <p className="text-neutral-400 mt-4">Rendering document...</p>
-            </div>
-          )}
-
-          {!loading && error && (
-            <div className="text-center">
-              <p className="text-red-400 text-xl font-bold mb-2">Error</p>
-              <p className="text-neutral-400">{error}</p>
-            </div>
-          )}
-
-          {!loading && !error && (
-            fileType === "pdf" ? (
-              <iframe
-                src={`${resumeUrl}#toolbar=1`}
-                className="w-full h-full border-none"
-                title="Resume Viewer"
-              />
-            ) : (
-              <div className="text-center max-w-md p-10 bg-neutral-900/60 border border-neutral-800 rounded-2xl">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-20 w-20 mx-auto text-neutral-500 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-
-                <h3 className="text-2xl font-bold text-white mb-2">{filename}</h3>
-                <p className="text-neutral-400 mb-4">Preview not supported for <strong>.{fileType}</strong> files</p>
-                <button
-                  onClick={handleDownload}
-                  className="px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 transition"
-                >
-                  Download to View
-                </button>
-              </div>
-            )
-          )}
-
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-3 border-t border-neutral-800 text-neutral-500 text-sm bg-neutral-900/90">
-          {filename || "resume.pdf"}
-        </div>
+        {isPdf && resumeUrl ? (
+          <iframe
+            src={resumeUrl}
+            className="flex-grow w-full"
+            title="Resume Preview"
+          />
+        ) : (
+          <div className="flex-grow flex items-center justify-center text-neutral-400">
+            Preview not available
+          </div>
+        )}
       </div>
     </div>
   );
