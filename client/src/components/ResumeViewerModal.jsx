@@ -15,7 +15,20 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
         const isPdf = filename?.toLowerCase().endsWith('.pdf');
 
         if (isPdf) {
-          setResumeUrl(`${API}/resume/view/${applicationId}?token=${token}`);
+          // Fetch the PDF with proper Authorization header
+          const response = await fetch(`${API}/resume/view/${applicationId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!response.ok) {
+            setError('Failed to load resume');
+            setLoading(false);
+            return;
+          }
+
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          setResumeUrl(blobUrl);
         } else {
           setError('Only PDF files can be previewed');
         }
@@ -29,7 +42,14 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
     };
 
     load();
-  }, [applicationId, filename]);
+
+    // Cleanup blob URL on unmount
+    return () => {
+      if (resumeUrl && resumeUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(resumeUrl);
+      }
+    };
+  }, [applicationId, filename, resumeUrl]);
 
   const isPdf = filename?.toLowerCase().endsWith('.pdf');
 
