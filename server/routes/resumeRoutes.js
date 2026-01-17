@@ -31,7 +31,7 @@ const flexAuthMiddleware = async (req, res, next) => {
 };
 
 /* ===============================
-   VIEW RESUME (REDIRECT ONLY)
+   VIEW RESUME (STREAM PDF, NO REDIRECT)
    =============================== */
 router.get('/view/:applicationId', flexAuthMiddleware, async (req, res) => {
   try {
@@ -55,8 +55,31 @@ router.get('/view/:applicationId', flexAuthMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Only PDF preview supported' });
     }
 
-    // 🔥 DO NOT STREAM — REDIRECT
-    return res.redirect(app.resumeUrl);
+    // DEPLOYMENT FIX: Stream PDF directly instead of 302 redirect
+    // This prevents Vercel's SPA rewrite rule from intercepting the response
+    const https = require('https');
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Accept-Ranges', 'bytes');
+
+    https.get(app.resumeUrl, (cloudinaryStream) => {
+      // If Cloudinary returns error, respond with JSON error
+      if (cloudinaryStream.statusCode !== 200) {
+        return res.status(500).json({ message: 'Failed to fetch resume from storage' });
+      }
+      
+      // Pipe Cloudinary response directly to client
+      cloudinaryStream.pipe(res);
+      
+      cloudinaryStream.on('error', (err) => {
+        console.error('Cloudinary stream error:', err);
+        res.status(500).json({ message: 'Failed to stream resume' });
+      });
+    }).on('error', (err) => {
+      console.error('Resume fetch error:', err);
+      res.status(500).json({ message: 'Failed to fetch resume' });
+    });
   } catch (err) {
     console.error('Resume view error:', err);
     return res.status(500).json({ message: 'Failed to view resume' });

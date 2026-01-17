@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
 export default function ResumeViewerModal({ applicationId, filename, onClose }) {
@@ -6,12 +6,6 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const iframeRef = useRef(null);
-  const loadCountRef = useRef(0);
-
-  /* ===============================
-     INITIAL LOAD
-     =============================== */
   useEffect(() => {
     try {
       const token = localStorage.getItem('token');
@@ -31,7 +25,6 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
         return;
       }
 
-      // DO NOT PREFETCH / HEAD CHECK
       setResumeUrl(`${API}/resume/view/${applicationId}?token=${token}`);
       setLoading(false);
     } catch (err) {
@@ -43,32 +36,6 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
 
   const isPdf = filename?.toLowerCase().endsWith('.pdf');
 
-  /* ===============================
-     IFRAME LOOP GUARD (DEPLOY FIX)
-     =============================== */
-  const handleIframeLoad = () => {
-    loadCountRef.current += 1;
-
-    // Allow initial redirect(s)
-    if (loadCountRef.current <= 2) return;
-
-    try {
-      const iframeWindow = iframeRef.current?.contentWindow;
-      const iframeUrl = iframeWindow?.location?.href;
-
-      // If iframe keeps loading our own SPA → auth redirect loop
-      if (iframeUrl && iframeUrl.includes(window.location.origin)) {
-        setError('Session expired. Please login again.');
-        setResumeUrl(null);
-      }
-    } catch {
-      // Cross-origin access blocked → GOOD (Cloudinary PDF)
-    }
-  };
-
-  /* ===============================
-     DOWNLOAD (UNCHANGED)
-     =============================== */
   const handleDownload = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -181,10 +148,8 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
         {/* IFRAME PREVIEW */}
         {isPdf && resumeUrl ? (
           <iframe
-            ref={iframeRef}
             src={resumeUrl}
             title="Resume Preview"
-            onLoad={handleIframeLoad}
             className="flex-1 w-full min-h-0 border-none"
           />
         ) : (
