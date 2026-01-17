@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 
 export default function ResumeViewerModal({ applicationId, filename, onClose }) {
@@ -6,53 +6,73 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const iframeRef = useRef(null);
+  const loadCountRef = useRef(0);
+
+  /* ===============================
+     INITIAL LOAD
+     =============================== */
   useEffect(() => {
-    const load = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const API = import.meta.env.VITE_API_URL;
+    try {
+      const token = localStorage.getItem('token');
+      const API = import.meta.env.VITE_API_URL;
 
-        const isPdf = filename?.toLowerCase().endsWith('.pdf');
+      const isPdf = filename?.toLowerCase().endsWith('.pdf');
 
-        if (isPdf) {
-          // Fetch the PDF with proper Authorization header
-          const response = await fetch(`${API}/resume/view/${applicationId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          if (!response.ok) {
-            setError('Failed to load resume');
-            setLoading(false);
-            return;
-          }
-
-          const blob = await response.blob();
-          const blobUrl = URL.createObjectURL(blob);
-          setResumeUrl(blobUrl);
-        } else {
-          setError('Only PDF files can be previewed');
-        }
-
+      if (!token) {
+        setError('Session expired. Please login again.');
         setLoading(false);
-      } catch (err) {
-        console.error('Load error:', err);
-        setError('Failed to load resume');
+        return;
+      }
+
+      if (!isPdf) {
+        setError('Only PDF files can be previewed');
         setLoading(false);
+        return;
       }
-    };
 
-    load();
-
-    // Cleanup blob URL on unmount
-    return () => {
-      if (resumeUrl && resumeUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(resumeUrl);
-      }
-    };
-  }, [applicationId, filename, resumeUrl]);
+      // IMPORTANT: Do NOT prefetch or HEAD check
+      setResumeUrl(`${API}/resume/view/${applicationId}?token=${token}`);
+      setLoading(false);
+    } catch (err) {
+      console.error('Load error:', err);
+      setError('Failed to load resume');
+      setLoading(false);
+    }
+  }, [applicationId, filename]);
 
   const isPdf = filename?.toLowerCase().endsWith('.pdf');
 
+  /* ===============================
+     IFRAME GUARD (STOP DEPLOY LOOP)
+     =============================== */
+  const handleIframeLoad = () => {
+    loadCountRef.current += 1;
+
+    // Stop infinite reload attempts
+    if (loadCountRef.current > 3) {
+      setError('Unable to load resume preview. Please download instead.');
+      setResumeUrl(null);
+      return;
+    }
+
+    try {
+      const iframeWindow = iframeRef.current?.contentWindow;
+      const iframeUrl = iframeWindow?.location?.href;
+
+      // 🔥 If iframe loads our own frontend (login page / SPA)
+      if (iframeUrl && iframeUrl.includes(window.location.origin)) {
+        setError('Session expired. Please login again.');
+        setResumeUrl(null);
+      }
+    } catch {
+      // Cross-origin access blocked → GOOD (Cloudinary PDF)
+    }
+  };
+
+  /* ===============================
+     DOWNLOAD (UNCHANGED)
+     =============================== */
   const handleDownload = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -76,12 +96,15 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
-      console.error('Download error:', error);
+    } catch (err) {
+      console.error('Download error:', err);
       alert('Failed to download resume');
     }
   };
 
+  /* ===============================
+     UI STATES
+     =============================== */
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -93,9 +116,9 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
   if (error) {
     return (
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-        <div className="bg-neutral-900 p-6 rounded-xl text-red-400">
-          {error}
-          <div className="mt-4 text-center">
+        <div className="bg-neutral-900 p-6 rounded-xl text-red-400 text-center max-w-sm">
+          <p>{error}</p>
+          <div className="mt-4">
             <button
               onClick={onClose}
               className="px-4 py-2 bg-neutral-700 rounded"
@@ -108,6 +131,9 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
     );
   }
 
+  /* ===============================
+     MAIN MODAL
+     =============================== */
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-2 sm:px-4">
       <div
@@ -159,8 +185,10 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
         {/* IFRAME PREVIEW */}
         {isPdf && resumeUrl ? (
           <iframe
+            ref={iframeRef}
             src={resumeUrl}
             title="Resume Preview"
+            onLoad={handleIframeLoad}
             className="flex-1 w-full min-h-0 border-none"
           />
         ) : (
