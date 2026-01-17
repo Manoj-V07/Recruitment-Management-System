@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const https = require('https');
+
 const User = require('../models/User');
 const Application = require('../models/Application');
 
-/* ===============================
-   FLEX AUTH (API-SAFE)
-   =============================== */
+/* =========================================================
+   FLEX AUTH — API SAFE (NO REDIRECTS, NO HTML)
+   ========================================================= */
 const flexAuthMiddleware = async (req, res, next) => {
   try {
     const token =
@@ -17,8 +19,8 @@ const flexAuthMiddleware = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
 
+    const user = await User.findById(decoded.id).select('-password');
     if (!user) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -30,9 +32,9 @@ const flexAuthMiddleware = async (req, res, next) => {
   }
 };
 
-/* ===============================
-   VIEW RESUME (STREAM PDF, NO REDIRECT)
-   =============================== */
+/* =========================================================
+   VIEW RESUME — PRODUCTION SAFE PDF STREAM (IFRAME)
+   ========================================================= */
 router.get('/view/:applicationId', flexAuthMiddleware, async (req, res) => {
   try {
     const app = await Application.findById(req.params.applicationId);
@@ -40,6 +42,7 @@ router.get('/view/:applicationId', flexAuthMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Application not found' });
     }
 
+    // Permission check
     if (
       req.user.role !== 'hr' &&
       app.candidateId.toString() !== req.user._id.toString()
@@ -55,40 +58,53 @@ router.get('/view/:applicationId', flexAuthMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Only PDF preview supported' });
     }
 
-    // DEPLOYMENT FIX: Stream PDF directly instead of 302 redirect
-    // This prevents Vercel's SPA rewrite rule from intercepting the response
-    const https = require('https');
-    
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.setHeader('Accept-Ranges', 'bytes');
+    /* 🔥 CRITICAL: Forward Range header for iframe PDF viewer */
+    const options = { headers: {} };
 
-    https.get(app.resumeUrl, (cloudinaryStream) => {
-      // If Cloudinary returns error, respond with JSON error
-      if (cloudinaryStream.statusCode !== 200) {
-        return res.status(500).json({ message: 'Failed to fetch resume from storage' });
-      }
-      
-      // Pipe Cloudinary response directly to client
-      cloudinaryStream.pipe(res);
-      
-      cloudinaryStream.on('error', (err) => {
+    if (req.headers.range) {
+      options.headers.Range = req.headers.range;
+    }
+
+    https.get(app.resumeUrl, options, (cloudinaryRes) => {
+      // Forward correct status (200 or 206)
+      res.status(cloudinaryRes.statusCode || 200);
+
+      // Forward required headers for browser PDF rendering
+      [
+        'content-type',
+        'content-length',
+        'accept-ranges',
+        'content-range'
+      ].forEach((header) => {
+        if (cloudinaryRes.headers[header]) {
+          res.setHeader(header, cloudinaryRes.headers[header]);
+        }
+      });
+
+      res.setHeader('Content-Disposition', 'inline');
+
+      cloudinaryRes.pipe(res);
+
+      cloudinaryRes.on('error', (err) => {
         console.error('Cloudinary stream error:', err);
-        res.status(500).json({ message: 'Failed to stream resume' });
+        if (!res.headersSent) {
+          res.status(500).json({ message: 'PDF stream failed' });
+        }
       });
     }).on('error', (err) => {
-      console.error('Resume fetch error:', err);
+      console.error('HTTPS fetch error:', err);
       res.status(500).json({ message: 'Failed to fetch resume' });
     });
+
   } catch (err) {
     console.error('Resume view error:', err);
-    return res.status(500).json({ message: 'Failed to view resume' });
+    res.status(500).json({ message: 'Failed to view resume' });
   }
 });
 
-/* ===============================
-   DOWNLOAD RESUME (STREAM OK)
-   =============================== */
+/* =========================================================
+   DOWNLOAD RESUME — SIMPLE & SAFE
+   ========================================================= */
 router.get('/download/:applicationId', flexAuthMiddleware, async (req, res) => {
   try {
     const app = await Application.findById(req.params.applicationId);
@@ -103,7 +119,7 @@ router.get('/download/:applicationId', flexAuthMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
-    // Force attachment download via Cloudinary
+    // Force Cloudinary download
     const downloadUrl = app.resumeUrl.replace(
       '/raw/upload/',
       '/raw/upload/fl_attachment/'
@@ -112,7 +128,7 @@ router.get('/download/:applicationId', flexAuthMiddleware, async (req, res) => {
     return res.redirect(downloadUrl);
   } catch (err) {
     console.error('Resume download error:', err);
-    return res.status(500).json({ message: 'Failed to download resume' });
+    res.status(500).json({ message: 'Failed to download resume' });
   }
 });
 
