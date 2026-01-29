@@ -6,7 +6,7 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: 'resumes',
-    resource_type: 'raw',
+    resource_type: 'image',
     allowed_formats: ['pdf'], 
     public_id: (req, file) => {
       const base = file.originalname.replace(/\.[^/.]+$/, '');
