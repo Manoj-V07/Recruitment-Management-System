@@ -7,67 +7,57 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    try {
-      const token = localStorage.getItem('token');
-      const API = import.meta.env.VITE_API_URL;
+    const token = localStorage.getItem('token');
+    const API = import.meta.env.VITE_API_URL;
 
-      if (!token) {
-        setError('Session expired. Please login again.');
-        setLoading(false);
-        return;
-      }
-
-      const isPdf = filename?.toLowerCase().endsWith('.pdf');
-
-      if (!isPdf) {
-        setError('Only PDF files can be previewed');
-        setLoading(false);
-        return;
-      }
-
-      setResumeUrl(`${API}/resume/view/${applicationId}?token=${token}`);
+    if (!token) {
+      setError('Session expired. Please login again.');
       setLoading(false);
-    } catch (err) {
-      console.error('Load error:', err);
-      setError('Failed to load resume');
-      setLoading(false);
+      return;
     }
-  }, [applicationId, filename]);
 
-  const isPdf = filename?.toLowerCase().endsWith('.pdf');
+    // Construct the stream URL with token as query param
+    // This allows the iframe to access the PDF endpoint with authentication
+    const streamUrl = `${API}/resume/view/${applicationId}?token=${token}`;
+    setResumeUrl(streamUrl);
+    setLoading(false);
+  }, [applicationId]);
 
   const handleDownload = async () => {
     try {
       const token = localStorage.getItem('token');
       const API = import.meta.env.VITE_API_URL;
 
-      const response = await fetch(`${API}/resume/download/${applicationId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${API}/resume/download/${applicationId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (!response.ok) {
-        alert('Failed to download resume');
-        return;
+        throw new Error('Download failed');
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
+
       const a = document.createElement('a');
       a.href = url;
       a.download = filename || 'resume.pdf';
       document.body.appendChild(a);
       a.click();
-      window.URL.revokeObjectURL(url);
+
       document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Download error:', err);
+      console.error(err);
       alert('Failed to download resume');
     }
   };
 
-  /* ===============================
-     UI STATES
-     =============================== */
+  /* ================= UI STATES ================= */
+
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -79,9 +69,43 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
   if (error) {
     return (
       <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-        <div className="bg-neutral-900 p-6 rounded-xl text-red-400 text-center max-w-sm">
+        <div className="bg-neutral-900 p-6 rounded-xl text-red-400 text-center">
           <p>{error}</p>
-          <div className="mt-4">
+          <button
+            onClick={onClose}
+            className="mt-4 px-4 py-2 bg-neutral-700 rounded"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ================= MODAL ================= */
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-2 sm:px-4">
+      <div className="w-full max-w-6xl h-[90vh] bg-neutral-900 rounded-xl flex flex-col overflow-hidden">
+        {/* HEADER */}
+        <div className="p-4 flex justify-between items-center border-b border-neutral-800">
+          <h2 className="text-lg font-bold truncate">{filename}</h2>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => window.open(resumeUrl, '_blank')}
+              className="px-4 py-2 bg-green-600 rounded"
+            >
+              Open in New Tab
+            </button>
+
+            <button
+              onClick={handleDownload}
+              className="px-4 py-2 bg-blue-600 rounded"
+            >
+              Download
+            </button>
+
             <button
               onClick={onClose}
               className="px-4 py-2 bg-neutral-700 rounded"
@@ -90,73 +114,13 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
             </button>
           </div>
         </div>
-      </div>
-    );
-  }
 
-  /* ===============================
-     MODAL
-     =============================== */
-  return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-2 sm:px-4">
-      <div
-        className="
-          w-full
-          max-w-6xl
-          h-[90vh]
-          sm:h-[92vh]
-          md:h-[94vh]
-          bg-neutral-900
-          rounded-xl
-          flex
-          flex-col
-          overflow-hidden
-        "
-      >
-        {/* HEADER */}
-        <div className="p-4 flex flex-wrap gap-2 justify-between items-center border-b border-neutral-800">
-          <h2 className="text-lg sm:text-xl font-bold truncate max-w-full">
-            {filename}
-          </h2>
-
-          <div className="flex flex-wrap gap-2">
-            {isPdf && resumeUrl && (
-              <button
-                onClick={() => window.open(resumeUrl, '_blank')}
-                className="px-4 py-2 bg-green-600 rounded hover:bg-green-700"
-              >
-                Open in New Tab
-              </button>
-            )}
-
-            <button
-              onClick={handleDownload}
-              className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
-            >
-              Download
-            </button>
-
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-neutral-700 rounded hover:bg-neutral-600"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-
-        {/* IFRAME PREVIEW */}
-        {isPdf && resumeUrl ? (
-          <iframe
-            src={resumeUrl}
-            title="Resume Preview"
-            className="flex-1 w-full min-h-0 border-none"
-          />
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-neutral-400">
-            Preview not available
-          </div>
-        )}
+        {/* IFRAME */}
+        <iframe
+          src={resumeUrl}
+          title="Resume Preview"
+          className="flex-1 w-full border-none"
+        />
       </div>
     </div>
   );

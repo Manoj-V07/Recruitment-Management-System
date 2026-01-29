@@ -19,7 +19,7 @@ const applyForJob = async (req, res) => {
     const application = await Application.create({
       jobId: job._id,
       candidateId: req.user._id,
-      resumeUrl: req.file.path,          // raw Cloudinary URL
+      resumeUrl: req.file.filename,          // Store only filename for local storage
       resumeFilename: req.file.originalname,
     });
 

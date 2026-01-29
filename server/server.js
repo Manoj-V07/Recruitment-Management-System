@@ -30,6 +30,9 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// Serve static files for resumes
+app.use('/uploads/resumes', express.static(require('path').join(__dirname, 'uploads/resumes')));
+
 // ROUTES
 app.use('/auth', require('./routes/authRoutes'));
 app.use('/jobs', require('./routes/jobRoutes'));
