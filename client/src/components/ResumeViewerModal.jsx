@@ -1,27 +1,18 @@
-import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
 export default function ResumeViewerModal({ applicationId, filename, onClose }) {
-  const [resumeUrl, setResumeUrl] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
+  const handleViewResume = () => {
     const token = localStorage.getItem('token');
     const API = import.meta.env.VITE_API_URL;
-
+    
     if (!token) {
-      setError('Session expired. Please login again.');
-      setLoading(false);
+      alert('Session expired. Please login again.');
       return;
     }
 
-    // Construct the stream URL with token as query param
-    // This allows the iframe to access the PDF endpoint with authentication
-    const streamUrl = `${API}/resume/view/${applicationId}?token=${token}`;
-    setResumeUrl(streamUrl);
-    setLoading(false);
-  }, [applicationId]);
+    const resumeUrl = `${API}/resume/view/${applicationId}?token=${token}`;
+    window.open(resumeUrl, '_blank');
+  };
 
   const handleDownload = async () => {
     try {
@@ -56,71 +47,33 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
     }
   };
 
-  /* ================= UI STATES ================= */
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-2 sm:px-4">
+      <div className="bg-neutral-900 p-8 rounded-xl max-w-sm">
+        <h2 className="text-xl font-bold text-white mb-6">{filename || 'Resume'}</h2>
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-        <p className="text-white">Loading...</p>
-      </div>
-    );
-  }
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={handleViewResume}
+            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition"
+          >
+            View Resume
+          </button>
 
-  if (error) {
-    return (
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-        <div className="bg-neutral-900 p-6 rounded-xl text-red-400 text-center">
-          <p>{error}</p>
+          <button
+            onClick={handleDownload}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
+          >
+            Download
+          </button>
+
           <button
             onClick={onClose}
-            className="mt-4 px-4 py-2 bg-neutral-700 rounded"
+            className="px-6 py-3 bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg font-medium transition"
           >
             Close
           </button>
         </div>
-      </div>
-    );
-  }
-
-  /* ================= MODAL ================= */
-
-  return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-2 sm:px-4">
-      <div className="w-full max-w-6xl h-[90vh] bg-neutral-900 rounded-xl flex flex-col overflow-hidden">
-        {/* HEADER */}
-        <div className="p-4 flex justify-between items-center border-b border-neutral-800">
-          <h2 className="text-lg font-bold truncate">{filename}</h2>
-
-          <div className="flex gap-2">
-            <button
-              onClick={() => window.open(resumeUrl, '_blank')}
-              className="px-4 py-2 bg-green-600 rounded"
-            >
-              Open in New Tab
-            </button>
-
-            <button
-              onClick={handleDownload}
-              className="px-4 py-2 bg-blue-600 rounded"
-            >
-              Download
-            </button>
-
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-neutral-700 rounded"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-
-        {/* IFRAME */}
-        <iframe
-          src={resumeUrl}
-          title="Resume Preview"
-          className="flex-1 w-full border-none"
-        />
       </div>
     </div>
   );

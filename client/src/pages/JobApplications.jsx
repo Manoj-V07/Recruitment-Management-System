@@ -3,7 +3,6 @@ import { updateApplicationStatus } from '../api/applicationApi';
 import api from '../api/axios';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import ResumeViewerModal from '../components/ResumeViewerModal';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
@@ -16,7 +15,6 @@ const JobApplications = () => {
   const [closingJobId, setClosingJobId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [viewingResume, setViewingResume] = useState(null);
 
   const fetchApplications = async () => {
     try {
@@ -232,8 +230,13 @@ const JobApplications = () => {
 
                   <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
                     <button
+                      onClick={() => {
+                        const token = localStorage.getItem('token');
+                        const API = import.meta.env.VITE_API_URL;
+                        const resumeUrl = `${API}/resume/view/${app._id}?token=${token}`;
+                        window.open(resumeUrl, '_blank');
+                      }}
                       className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-lg bg-gradient-to-r from-green-600 to-emerald-500 font-medium hover:opacity-90 text-xs sm:text-sm"
-                      onClick={() => setViewingResume({ applicationId: app._id, filename: app.resumeFilename })}
                     >
                        View Resume
                     </button>
@@ -288,14 +291,6 @@ const JobApplications = () => {
       </div>
 
       <Footer />
-
-      {viewingResume && (
-        <ResumeViewerModal
-          applicationId={viewingResume.applicationId}
-          filename={viewingResume.filename}
-          onClose={() => setViewingResume(null)}
-        />
-      )}
     </div>
   );
 };
