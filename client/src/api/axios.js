@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://recruitment-management-system-cb3j.onrender.com/',
+  baseURL:  'https://recruitment-management-system-1-btao.onrender.com',
   headers: {
     'Content-Type': 'application/json',
   },

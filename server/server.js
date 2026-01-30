@@ -11,7 +11,8 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:3000',
-  'https://recruitment-management-system-flame.vercel.app'
+  'https://recruitment-management-system-flame.vercel.app',
+  'https://recruitment-management-system-eight.vercel.app'
 ];
 
 app.use((req, res, next) => {
