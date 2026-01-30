@@ -9,8 +9,9 @@ import { useLocation } from 'react-router-dom';
 const JobApplications = () => {
   const location = useLocation();
   const jobId = location.state?.jobId;
+
   const [applications, setApplications] = useState([]);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState('all');
   const [updatingId, setUpdatingId] = useState(null);
   const [closingJobId, setClosingJobId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,12 +21,16 @@ const JobApplications = () => {
     try {
       setLoading(true);
       setError('');
-      const endpoint = jobId ? `/applications/job/${jobId}` : '/applications/job/all';
+
+      const endpoint = jobId
+        ? `/applications/job/${jobId}`
+        : '/applications/job/all';
+
       const res = await api.get(endpoint);
       setApplications(res.data);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch applications");
       console.error('Fetch applications error:', err);
+      setError(err.response?.data?.message || 'Failed to fetch applications');
     } finally {
       setLoading(false);
     }
@@ -39,24 +44,29 @@ const JobApplications = () => {
     try {
       setUpdatingId(applicationId);
       await updateApplicationStatus(applicationId, status);
+
       setApplications(prev =>
         prev.map(app =>
           app._id === applicationId ? { ...app, status } : app
         )
       );
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to update status");
       console.error('Status update error:', err);
+      setError(err.response?.data?.message || 'Failed to update status');
     } finally {
       setUpdatingId(null);
     }
   };
 
   const handleCloseJob = async (jobId) => {
-    if (!confirm('Are you sure you want to close this job opening?')) return;
+    if (!window.confirm('Are you sure you want to close this job opening?')) {
+      return;
+    }
+
     try {
       setClosingJobId(jobId);
       await api.patch(`/jobs/close/${jobId}`);
+
       setApplications(prev =>
         prev.map(app =>
           app.jobId?._id === jobId
@@ -65,61 +75,71 @@ const JobApplications = () => {
         )
       );
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to close job");
       console.error('Close job error:', err);
+      setError(err.response?.data?.message || 'Failed to close job');
     } finally {
       setClosingJobId(null);
     }
   };
 
+  const handleViewResume = (applicationId) => {
+  const token = localStorage.getItem('token');
+  const API = import.meta.env.VITE_API_URL;
+
+  if (!token) {
+    alert('Session expired. Please login again.');
+    return;
+  }
+
+  if (!API) {
+    console.error('VITE_API_URL is not defined');
+    return;
+  }
+
+  const resumeUrl = `${API}/resume/view/${applicationId}?token=${encodeURIComponent(token)}`;
+
+  window.open(resumeUrl, '_blank', 'noopener,noreferrer');
+};
 
   const handleDownloadResume = async (applicationId, filename) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'https://recruitment-management-system-3-nvub.onrender.com';
+      const API = import.meta.env.VITE_API_URL;
       const token = localStorage.getItem('token');
-      
-      // Fetch as blob from backend streaming endpoint
-      const response = await fetch(`${API_URL}/resume/download/${applicationId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
 
-      if (!response.ok) throw new Error('Download failed');
-
-      // Get the blob
-      const blob = await response.blob();
-      
-      // Extract filename from Content-Disposition header or use provided filename
-      const contentDisposition = response.headers.get('Content-Disposition');
-      let downloadFilename = filename || 'resume.pdf';
-      
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch && filenameMatch[1]) {
-          downloadFilename = filenameMatch[1].replace(/['"]/g, '');
-          downloadFilename = decodeURIComponent(downloadFilename);
+      const response = await fetch(
+        `${API}/resume/download/${applicationId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
+      );
+
+      if (!response.ok) {
+        throw new Error('Download failed');
       }
-      
-      // Create blob URL and trigger download
+
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
+
       const a = document.createElement('a');
       a.href = url;
-      a.download = downloadFilename;
+      a.download = filename || 'resume.pdf';
       document.body.appendChild(a);
       a.click();
-      
-      // Cleanup
+
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      
     } catch (err) {
-      setError('Failed to download resume');
       console.error('Download resume error:', err);
+      setError('Failed to download resume');
     }
   };
 
-
-  const filteredApplications = applications.filter(app => filter === "all" ? true : app.status === filter);
+  const filteredApplications =
+    filter === 'all'
+      ? applications
+      : applications.filter(app => app.status === filter);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -127,7 +147,6 @@ const JobApplications = () => {
         return 'bg-green-900/50 border-green-600 text-green-300';
       case 'rejected':
         return 'bg-red-900/50 border-red-600 text-red-300';
-      case 'applied':
       default:
         return 'bg-blue-900/50 border-blue-600 text-blue-300';
     }
@@ -143,151 +162,113 @@ const JobApplications = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-950 text-white">
-        <p className="animate-pulse text-neutral-400">Loading applications...</p>
+        <p className="animate-pulse text-neutral-400">
+          Loading applications...
+        </p>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white relative overflow-hidden">
-
-      {/* Ambient glow */}
-      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-blue-500/20 blur-[160px]" />
-      <div className="absolute bottom-0 -right-40 w-[500px] h-[500px] bg-purple-500/20 blur-[160px]" />
-
       <Header />
 
-      <div className="flex-grow p-5 sm:p-6 lg:p-8 max-w-7xl mx-auto relative z-10 w-full">
+      <div className="p-5 max-w-7xl mx-auto">
+        <h2 className="text-4xl font-extrabold mb-4">
+          Job Applications
+        </h2>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        {error && (
+          <div className="mb-6 p-4 bg-red-900/40 border border-red-700 text-red-300 rounded-xl">
+            {error}
+          </div>
+        )}
 
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2 sm:mb-3">
-            Job Applications
-          </h2>
+        <div className="flex gap-2 mb-8">
+          {Object.keys(statusCounts).map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-4 py-2 rounded-lg capitalize ${
+                filter === f
+                  ? 'bg-blue-600'
+                  : 'bg-neutral-800 hover:bg-neutral-700'
+              }`}
+            >
+              {f} ({statusCounts[f]})
+            </button>
+          ))}
+        </div>
 
-          <p className="text-neutral-400/80 text-xs sm:text-sm lg:text-lg mb-6 sm:mb-8 lg:mb-10">
-            {jobId ? 'Manage applications for this job' : 'Review all applied candidates'}
-          </p>
+        <div className="space-y-6">
+          {filteredApplications.map(app => (
+            <motion.div
+              key={app._id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="border border-neutral-800 p-6 rounded-2xl bg-neutral-900"
+            >
+              <h3 className="text-xl font-bold">
+                {app.jobId?.jobTitle || 'Unknown Job'}
+              </h3>
 
-          {error && (
-            <div className="mb-5 sm:mb-6 p-3 sm:p-5 rounded-lg sm:rounded-2xl bg-red-900/40 border border-red-700 text-red-300 font-medium backdrop-blur text-xs sm:text-sm">
-              {error}
-            </div>
-          )}
+              <p className="text-neutral-400">
+                {app.candidateId?.username} — {app.candidateId?.email}
+              </p>
 
-          {/* Filters */}
-          <div className="flex flex-wrap gap-2 sm:gap-3 mb-8 sm:mb-10">
-            {Object.keys(statusCounts).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-semibold capitalize transition-all text-xs sm:text-sm ${
-                  filter === f
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg shadow-blue-700/40"
-                    : "bg-neutral-900/60 border border-neutral-700 text-neutral-300 hover:bg-neutral-800"
-                }`}
+              <span
+                className={`inline-block mt-2 px-3 py-1 rounded-full border text-sm ${getStatusColor(
+                  app.status
+                )}`}
               >
-                {f} ({statusCounts[f]})
-              </button>
-            ))}
-          </div>
+                {app.status}
+              </span>
 
-          <div className="space-y-4 sm:space-y-6">
-            {filteredApplications.length === 0 ? (
-              <div className="text-center p-8 sm:p-12 lg:p-16 bg-neutral-900/60 backdrop-blur rounded-2xl lg:rounded-3xl border border-neutral-800 text-neutral-400 text-xs sm:text-sm lg:text-base">
-                No applications match this filter.
-              </div>
-            ) : (
-              filteredApplications.map((app) => (
-                <motion.div key={app._id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="group border border-neutral-800 p-5 sm:p-7 rounded-2xl lg:rounded-3xl bg-neutral-900/70 backdrop-blur hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-600/10 transition-all"
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => handleViewResume(app._id)}
+                  className="px-4 py-2 bg-green-600 rounded-lg"
                 >
+                  View Resume
+                </button>
 
-                  <h3 className="text-lg sm:text-2xl font-bold mb-2 line-clamp-2">
-                    {app.jobId?.jobTitle || "Unknown Job"}
-                  </h3>
-                  <div className="text-neutral-400 flex flex-col sm:flex-row gap-2 sm:gap-4 text-xs sm:text-sm mb-4 sm:mb-6">
-                    <span>📍 {app.jobId?.location || "N/A"}</span>
-                    <span>💼 {app.jobId?.jobType || "N/A"}</span>
-                    {app.jobId?.isOpen !== undefined && (
-                      <span className={app.jobId?.isOpen ? "text-green-400" : "text-red-400"}>
-                        {app.jobId?.isOpen ? "Open" : "Closed"}
-                      </span>
-                    )}
-                  </div>
+                <button
+                  onClick={() =>
+                    handleDownloadResume(app._id, app.resumeFilename)
+                  }
+                  className="px-4 py-2 bg-purple-600 rounded-lg"
+                >
+                  Download
+                </button>
+              </div>
 
-                  <div className="mb-4 sm:mb-6">
-                    <h4 className="text-sm sm:text-lg font-semibold">
-                      {app.candidateId?.username || "Unknown Candidate"}
-                    </h4>
-                    <p className="text-neutral-400 text-xs sm:text-sm">📧 {app.candidateId?.email}</p>
-                    <span className={`inline-block px-3 sm:px-4 py-1.5 sm:py-2 mt-2 sm:mt-3 rounded-full border font-semibold text-xs sm:text-sm ${getStatusColor(app.status)}`}>
-                      Status: {app.status}
-                    </span>
-                  </div>
+              <div className="flex gap-2 mt-4">
+                {['applied', 'shortlisted', 'rejected'].map(status => (
+                  <button
+                    key={status}
+                    disabled={updatingId === app._id}
+                    onClick={() =>
+                      handleStatusUpdate(app._id, status)
+                    }
+                    className="px-3 py-2 bg-neutral-800 rounded-lg"
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
 
-                  <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
-                    <button
-                      onClick={() => {
-                        const token = localStorage.getItem('token');
-                        const API = import.meta.env.VITE_API_URL;
-                        const resumeUrl = `${API}/resume/view/${app._id}?token=${token}`;
-                        window.open(resumeUrl, '_blank');
-                      }}
-                      className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-lg bg-gradient-to-r from-green-600 to-emerald-500 font-medium hover:opacity-90 text-xs sm:text-sm"
-                    >
-                       View Resume
-                    </button>
-
-                    <button
-                      onClick={() => handleDownloadResume(app._id, app.resumeFilename)}
-                      className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 font-medium hover:opacity-90 text-xs sm:text-sm"
-                    >
-                       Download
-                    </button>
-                  </div>
-
-                  <div className="mb-4 sm:mb-6">
-                    <p className="text-neutral-400 text-xs sm:text-sm mb-2">Update Status:</p>
-                    <div className="flex flex-wrap gap-2 sm:gap-3">
-                      {["applied", "shortlisted", "rejected"].map((status) => (
-                        <button
-                          key={status}
-                          disabled={updatingId === app._id || app.status === status}
-                          onClick={() => handleStatusUpdate(app._id, status)}
-                          className={`px-3 sm:px-4 py-2 rounded-lg font-medium capitalize text-xs sm:text-sm ${
-                            app.status === status
-                              ? "bg-neutral-800 text-neutral-500 cursor-not-allowed"
-                              : "bg-neutral-800 hover:bg-neutral-700"
-                          } ${updatingId === app._id ? "opacity-50 cursor-wait" : ""}`}
-                        >
-                          {updatingId === app._id ? "⏳" : status}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {app.jobId?.isOpen && (
-                    <button
-                      onClick={() => handleCloseJob(app.jobId._id)}
-                      disabled={closingJobId === app.jobId._id}
-                      className="px-3 sm:px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-red-800 font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-wait text-xs sm:text-sm"
-                    >
-                      {closingJobId === app.jobId._id ? "⏳ Closing..." : " Close Job"}
-                    </button>
-                  )}
-
-                  {!app.jobId?.isOpen && (
-                    <p className="text-red-400 font-semibold text-xs sm:text-sm">🔒 This job posting is closed</p>
-                  )}
-
-                </motion.div>
-              ))
-            )}
-          </div>
-        </motion.div>
+              {app.jobId?.isOpen && (
+                <button
+                  onClick={() => handleCloseJob(app.jobId._id)}
+                  disabled={closingJobId === app.jobId._id}
+                  className="mt-4 px-4 py-2 bg-red-700 rounded-lg"
+                >
+                  Close Job
+                </button>
+              )}
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       <Footer />

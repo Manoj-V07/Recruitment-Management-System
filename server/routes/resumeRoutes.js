@@ -7,7 +7,9 @@ const User = require('../models/User');
 const Application = require('../models/Application');
 const { resumesDir } = require('../config/localStorage');
 
-// Auth middleware - supports both header and query token
+/* ===============================
+   AUTH
+================================ */
 const flexAuth = async (req, res, next) => {
   try {
     const token =
@@ -26,7 +28,9 @@ const flexAuth = async (req, res, next) => {
   }
 };
 
-// VIEW PDF (new tab)
+/* ===============================
+   VIEW PDF (new tab)
+================================ */
 router.get('/view/:applicationId', flexAuth, async (req, res) => {
   try {
     const app = await Application.findById(req.params.applicationId);
@@ -39,29 +43,31 @@ router.get('/view/:applicationId', flexAuth, async (req, res) => {
       return res.sendStatus(403);
     }
 
-    const filePath = path.join(resumesDir, app.resumeUrl);
-
-    if (!path.resolve(filePath).startsWith(path.resolve(resumesDir))) {
-      return res.sendStatus(403);
+    // ❗ resumeUrl MUST be filename only
+    if (!app.resumeUrl || app.resumeUrl.includes('http')) {
+      return res.status(500).json({ message: 'Invalid resume path stored' });
     }
+
+    const filePath = path.join(resumesDir, app.resumeUrl);
 
     if (!fs.existsSync(filePath)) {
       return res.sendStatus(404);
     }
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    
-    const stream = fs.createReadStream(filePath);
-    stream.on('error', () => res.sendStatus(500));
-    stream.pipe(res);
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Cache-Control', 'no-store');
+
+    fs.createReadStream(filePath).pipe(res);
   } catch (err) {
     console.error(err);
     res.sendStatus(500);
   }
 });
 
-// DOWNLOAD PDF
+/* ===============================
+   DOWNLOAD PDF (NO FETCH, NO CORS)
+================================ */
 router.get('/download/:applicationId', flexAuth, async (req, res) => {
   try {
     const app = await Application.findById(req.params.applicationId);
@@ -74,23 +80,17 @@ router.get('/download/:applicationId', flexAuth, async (req, res) => {
       return res.sendStatus(403);
     }
 
-    const filePath = path.join(resumesDir, app.resumeUrl);
-
-    if (!path.resolve(filePath).startsWith(path.resolve(resumesDir))) {
-      return res.sendStatus(403);
+    if (!app.resumeUrl || app.resumeUrl.includes('http')) {
+      return res.status(500).json({ message: 'Invalid resume path stored' });
     }
+
+    const filePath = path.join(resumesDir, app.resumeUrl);
 
     if (!fs.existsSync(filePath)) {
       return res.sendStatus(404);
     }
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${app.resumeFilename || 'resume.pdf'}"`);
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    
-    const stream = fs.createReadStream(filePath);
-    stream.on('error', () => res.sendStatus(500));
-    stream.pipe(res);
+    res.download(filePath, app.resumeFilename || 'resume.pdf');
   } catch (err) {
     console.error(err);
     res.sendStatus(500);
