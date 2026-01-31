@@ -8,7 +8,7 @@ const Application = require('../models/Application');
 const { resumesDir } = require('../config/localStorage');
 
 /* ===============================
-   AUTH
+   AUTH (HEADER + QUERY TOKEN)
 ================================ */
 const flexAuth = async (req, res, next) => {
   try {
@@ -29,15 +29,12 @@ const flexAuth = async (req, res, next) => {
 };
 
 /* ===============================
-   VIEW PDF (new tab)
+   VIEW RESUME (INLINE PDF)
 ================================ */
 router.get('/view/:applicationId', flexAuth, async (req, res) => {
   try {
     const app = await Application.findById(req.params.applicationId);
-    if (!app) {
-      console.error('Application not found:', req.params.applicationId);
-      return res.status(404).json({ message: 'Application not found' });
-    }
+    if (!app) return res.sendStatus(404);
 
     if (
       req.user.role !== 'hr' &&
@@ -46,23 +43,18 @@ router.get('/view/:applicationId', flexAuth, async (req, res) => {
       return res.sendStatus(403);
     }
 
-    // Check if resumeUrl exists and is valid
-    if (!app.resumeUrl) {
-      console.error('No resume URL for application:', app._id);
-      return res.status(404).json({ message: 'No resume file associated with this application' });
-    }
-
-    // If it's a Cloudinary URL, reject (old data)
-    if (app.resumeUrl.includes('http') || app.resumeUrl.includes('cloudinary')) {
-      console.error('Invalid resume format (Cloudinary URL):', app.resumeUrl);
-      return res.status(500).json({ message: 'Resume data needs migration. Please reupload resume.' });
+    if (!app.resumeUrl || app.resumeUrl.includes('http')) {
+      return res.status(500).json({
+        message: 'Invalid resume data. Please reupload resume.',
+      });
     }
 
     const filePath = path.join(resumesDir, app.resumeUrl);
 
     if (!fs.existsSync(filePath)) {
-      console.error('Resume file not found at:', filePath, 'stored as:', app.resumeUrl);
-      return res.status(404).json({ message: 'Resume file not found. Please reupload.' });
+      return res.status(404).json({
+        message: 'Resume file not found. Please reupload.',
+      });
     }
 
     res.setHeader('Content-Type', 'application/pdf');
@@ -72,20 +64,17 @@ router.get('/view/:applicationId', flexAuth, async (req, res) => {
     fs.createReadStream(filePath).pipe(res);
   } catch (err) {
     console.error('View resume error:', err);
-    res.status(500).json({ message: 'Failed to load resume' });
+    res.sendStatus(500);
   }
 });
 
 /* ===============================
-   DOWNLOAD PDF (NO FETCH, NO CORS)
+   DOWNLOAD RESUME (ATTACHMENT)
 ================================ */
 router.get('/download/:applicationId', flexAuth, async (req, res) => {
   try {
     const app = await Application.findById(req.params.applicationId);
-    if (!app) {
-      console.error('Application not found:', req.params.applicationId);
-      return res.status(404).json({ message: 'Application not found' });
-    }
+    if (!app) return res.sendStatus(404);
 
     if (
       req.user.role !== 'hr' &&
@@ -94,29 +83,24 @@ router.get('/download/:applicationId', flexAuth, async (req, res) => {
       return res.sendStatus(403);
     }
 
-    // Check if resumeUrl exists and is valid
-    if (!app.resumeUrl) {
-      console.error('No resume URL for application:', app._id);
-      return res.status(404).json({ message: 'No resume file associated with this application' });
-    }
-
-    // If it's a Cloudinary URL, reject (old data)
-    if (app.resumeUrl.includes('http') || app.resumeUrl.includes('cloudinary')) {
-      console.error('Invalid resume format (Cloudinary URL):', app.resumeUrl);
-      return res.status(500).json({ message: 'Resume data needs migration. Please reupload resume.' });
+    if (!app.resumeUrl || app.resumeUrl.includes('http')) {
+      return res.status(500).json({
+        message: 'Invalid resume data. Please reupload resume.',
+      });
     }
 
     const filePath = path.join(resumesDir, app.resumeUrl);
 
     if (!fs.existsSync(filePath)) {
-      console.error('Resume file not found at:', filePath, 'stored as:', app.resumeUrl);
-      return res.status(404).json({ message: 'Resume file not found. Please reupload.' });
+      return res.status(404).json({
+        message: 'Resume file not found. Please reupload.',
+      });
     }
 
     res.download(filePath, app.resumeFilename || 'resume.pdf');
   } catch (err) {
     console.error('Download resume error:', err);
-    res.status(500).json({ message: 'Failed to download resume' });
+    res.sendStatus(500);
   }
 });
 

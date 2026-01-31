@@ -1,15 +1,25 @@
 import PropTypes from 'prop-types';
 
 export default function ResumeViewerModal({ applicationId, filename, onClose }) {
+  const API = import.meta.env.VITE_API_URL;
 
   const handleViewResume = () => {
     const token = localStorage.getItem('token');
-    const API = import.meta.env.VITE_API_URL;
-    window.open(`${API}/resume/view/${applicationId}?token=${token}`, '_blank');
+    if (!token) {
+      alert('Session expired. Please login again.');
+      return;
+    }
+
+    // Open PDF directly in new tab (NO fetch, NO iframe, NO CORS)
+    window.open(
+      `${API}/resume/view/${applicationId}?token=${token}`,
+      '_blank',
+      'noopener,noreferrer'
+    );
   };
 
   const handleDownload = () => {
-    const API = import.meta.env.VITE_API_URL;
+    // Browser-handled download (NO fetch, NO CORS)
     window.location.href = `${API}/resume/download/${applicationId}`;
   };
 
@@ -21,15 +31,24 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
         </h2>
 
         <div className="flex flex-col gap-3">
-          <button onClick={handleViewResume} className="px-6 py-3 bg-green-600 rounded-lg">
+          <button
+            onClick={handleViewResume}
+            className="px-6 py-3 bg-green-600 rounded-lg hover:bg-green-700"
+          >
             View Resume
           </button>
 
-          <button onClick={handleDownload} className="px-6 py-3 bg-blue-600 rounded-lg">
+          <button
+            onClick={handleDownload}
+            className="px-6 py-3 bg-blue-600 rounded-lg hover:bg-blue-700"
+          >
             Download
           </button>
 
-          <button onClick={onClose} className="px-6 py-3 bg-neutral-700 rounded-lg">
+          <button
+            onClick={onClose}
+            className="px-6 py-3 bg-neutral-700 rounded-lg hover:bg-neutral-600"
+          >
             Close
           </button>
         </div>
