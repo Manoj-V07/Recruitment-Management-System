@@ -8,7 +8,6 @@ export default function ResumeViewerModal({ applicationId, filename, onClose }) 
     window.open(`${API}/resume/view/${applicationId}?token=${token}`, '_blank');
   };
 
-  // ✅ FIXED
   const handleDownload = () => {
     const API = import.meta.env.VITE_API_URL;
     window.location.href = `${API}/resume/download/${applicationId}`;

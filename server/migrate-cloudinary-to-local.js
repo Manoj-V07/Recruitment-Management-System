@@ -1,13 +1,3 @@
-#!/usr/bin/env node
-/**
- * Database Migration Script: Cloudinary URLs to Local Filenames
- * 
- * Use this script to migrate existing Cloudinary URLs in the database
- * to the new local filename format.
- * 
- * Usage: node migrate-cloudinary-to-local.js
- */
-
 const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config();
@@ -16,11 +6,9 @@ const Application = require('./models/Application');
 
 async function migrationCloudinaryToLocal() {
   try {
-    // Connect to MongoDB
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✓ Connected to MongoDB');
 
-    // Find all applications with Cloudinary URLs
     const applications = await Application.find({
       resumeUrl: { $regex: 'cloudinary.com' }
     });
@@ -38,8 +26,6 @@ async function migrationCloudinaryToLocal() {
 
     for (const app of applications) {
       try {
-        // Extract useful information from Cloudinary URL
-        // Format: https://res.cloudinary.com/...resumes/resume_[id]_[timestamp]_[name].pdf
         
         const urlMatch = app.resumeUrl.match(/resumes\/(resume_[^\/]+\.pdf)/);
         const filename = urlMatch ? urlMatch[1] : `resume_${app._id}_${Date.now()}.pdf`;
@@ -71,5 +57,4 @@ async function migrationCloudinaryToLocal() {
   }
 }
 
-// Run migration
 migrationCloudinaryToLocal();
